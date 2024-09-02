@@ -193,8 +193,7 @@ main {
 }
 
 .about-text-container {
-    left: 150px;
-    width: 500px;
+    width: 700px;
 }
 
 .about-container img {
@@ -314,6 +313,7 @@ main {
     padding: 20px;
     border: 1px solid var(--color-brown);
     border-radius: 0 0 10px 10px;
+    height: 100px;
 }
 
 .project-description .project-title {
@@ -496,6 +496,14 @@ main {
     .project-card {
         flex-grow: 0;
         max-width: 300px;
+    }
+
+    .project-description {
+        height: unset;
+    }
+
+    .project-description .project-description-text {
+        display: none;
     }
 
     .project-image-container img {
