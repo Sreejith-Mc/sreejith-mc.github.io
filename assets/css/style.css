@@ -154,7 +154,8 @@ main {
 }
 
 .hero-button,
-.about-button {
+.about-button,
+.more-btn {
     margin-top: 40px;
     display: flex;
     align-items: center;
@@ -175,7 +176,8 @@ main {
 }
 
 .hero-button:hover,
-.about-button:hover {
+.about-button:hover,
+.more-btn:hover {
     color: var(--color-brown);
     background-color: transparent;
 }
