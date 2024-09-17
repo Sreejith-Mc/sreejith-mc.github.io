@@ -228,6 +228,8 @@ main {
 
 
 section {
+    display: flex;
+    flex-direction: column;
     margin-top: 100px;
     padding-block: min(20vh, 2rem);
     width: calc(min(76.5rem, 90%));
@@ -257,10 +259,10 @@ section {
     }
   
     .container {
-      margin-top: 5em;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-      gap: 3rem;
+        margin-top: 5em;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+        gap: 3rem;
   
       .card {
         &:nth-child(1) .box .icon .iconBox {
@@ -435,9 +437,16 @@ section {
         }
       }
     }
+    .more-btn {
+        align-self: center;
+        background-color: var(--color-brown);
+        color: white;
+        margin-top: 20px;
+        padding: 15px;
+        width: 100px;
+        height: 20px;
+    }
   }
-
-
 
 .skills-container {
     margin-top: 100px;
