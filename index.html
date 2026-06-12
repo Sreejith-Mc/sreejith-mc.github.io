@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
   <noscript><style>#preloader{display:none!important}</style></noscript>
   <script>
     (function () {
@@ -178,9 +178,18 @@
       <div class="comment-spot">
         <button class="comment-pin" id="commentPin" aria-expanded="false" aria-label="Open comment">💬</button>
         <div class="comment-bubble" id="commentBubble">
-          <div class="cb-head"><span class="avatar a1">M</span><b>Maya</b><span class="cb-time">· 2m ago</span></div>
-          <p>this hero goes hard. ship it 🔥</p>
-          <div class="cb-reply">Reply…</div>
+          <div class="cb-thread" id="commentThread">
+            <div class="cb-msg">
+              <div class="cb-head"><span class="avatar a1">M</span><b>Maya</b><span class="cb-time">· 2m ago</span></div>
+              <p>this hero goes hard. ship it 🔥</p>
+            </div>
+          </div>
+          <form class="cb-reply" id="commentForm">
+            <input type="text" id="commentInput" placeholder="Reply…" maxlength="140" autocomplete="off" aria-label="Reply to comment">
+            <button type="submit" aria-label="Send reply">
+              <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M8 13V3M3.5 7.5L8 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </form>
         </div>
       </div>
 
@@ -612,6 +621,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollToPlugin.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/Draggable.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/SplitText.min.js"></script>
-  <script src="script.js?v=3"></script>
+  <script src="script.js?v=4"></script>
 </body>
 </html>

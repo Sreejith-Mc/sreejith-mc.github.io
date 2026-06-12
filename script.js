@@ -83,12 +83,56 @@
     pin.addEventListener('click', () => {
       const open = bubble.classList.toggle('open');
       pin.setAttribute('aria-expanded', open);
+      if (hasGSAP) {
+        /* hold the idle bobbing still while the thread is open */
+        gsap.getTweensOf('.comment-spot').forEach((t) => (open ? t.pause() : t.resume()));
+        if (open) gsap.to('.comment-spot', { y: 0, duration: 0.25, ease: 'power2.out', overwrite: 'auto' });
+      }
       if (open && hasGSAP && !reduced) {
         gsap.fromTo(
           bubble,
-          { scale: 0.6, opacity: 0, transformOrigin: 'top left' },
+          { scale: 0.6, opacity: 0, transformOrigin: 'top right' },
           { scale: 1, opacity: 1, duration: 0.35, ease: 'back.out(2)' }
         );
+      }
+      if (open && window.matchMedia('(pointer: fine)').matches) {
+        const inp = $('#commentInput');
+        if (inp) inp.focus({ preventScroll: true });
+      }
+    });
+  }
+
+  /* working reply thread */
+  const commentForm = $('#commentForm');
+  const commentThread = $('#commentThread');
+  if (commentForm && commentThread) {
+    let mayaReplied = false;
+    const addMsg = (avatarClass, initial, name, text) => {
+      const msg = document.createElement('div');
+      msg.className = 'cb-msg';
+      const head = document.createElement('div');
+      head.className = 'cb-head';
+      head.innerHTML =
+        '<span class="avatar ' + avatarClass + '">' + initial + '</span><b>' + name + '</b><span class="cb-time">· just now</span>';
+      const p = document.createElement('p');
+      p.textContent = text; // user text only ever lands here — no HTML injection
+      msg.appendChild(head);
+      msg.appendChild(p);
+      commentThread.appendChild(msg);
+      commentThread.scrollTop = commentThread.scrollHeight;
+      if (hasGSAP && !reduced) gsap.from(msg, { y: 12, opacity: 0, duration: 0.35, ease: 'power3.out' });
+    };
+    commentForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = $('#commentInput');
+      const text = input.value.trim();
+      if (!text) return;
+      addMsg('a-self', 'A', 'You', text);
+      input.value = '';
+      input.focus({ preventScroll: true });
+      if (!mayaReplied) {
+        mayaReplied = true;
+        setTimeout(() => addMsg('a1', 'M', 'Maya', 'right?? hire them already 👀'), 1400);
       }
     });
   }
