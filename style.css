@@ -455,16 +455,22 @@ body.frame-playground .hm-hint-drag{ display:inline; }
 .component-card p{ font-size:13.5px; line-height:1.55; color:var(--muted); }
 
 .stats{
+  --stat-gap:24px;
   display:flex; align-items:center; gap:18px; flex-wrap:wrap;
   border-top:1px solid var(--border); padding-top:36px;
 }
 .stat b{ display:block; font-size:34px; font-weight:800; letter-spacing:-.03em; }
 .stat span{ font-size:12px; color:var(--muted); font-weight:500; }
 .gap-pill{
-  align-self:stretch; min-height:48px; width:20px;
+  align-self:stretch; min-height:48px; width:var(--stat-gap, 24px);
   display:grid; place-items:center;
   font-size:9px; font-weight:700; color:var(--pink);
   background:rgba(245,66,184,.10); border-radius:4px;
+  cursor:ew-resize; user-select:none; touch-action:none;
+  transition:background .15s ease, color .15s ease;
+}
+.gap-pill:hover, body.is-gapping .gap-pill{
+  background:rgba(245,66,184,.25); color:#D6189B;
 }
 
 /* ============ Work ============ */

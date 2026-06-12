@@ -71,6 +71,41 @@
     });
   }
 
+  /* auto-layout gap handles — drag the pink "24" pills, like Figma */
+  const statsRow = $('.stats');
+  const gapPills = $$('.gap-pill');
+  if (statsRow && gapPills.length) {
+    let gapVal = 24;
+    const applyGap = (v) => {
+      gapVal = Math.round(Math.max(12, Math.min(80, v)));
+      statsRow.style.setProperty('--stat-gap', gapVal + 'px');
+      gapPills.forEach((p) => (p.textContent = gapVal));
+    };
+    gapPills.forEach((pill) => {
+      pill.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        try { pill.setPointerCapture(e.pointerId); } catch (err) { /* synthetic events */ }
+        const startX = e.clientX, startGap = gapVal;
+        document.body.classList.add('is-gapping');
+        const onMove = (ev) => applyGap(startGap + (ev.clientX - startX));
+        const onUp = (ev) => {
+          try { pill.releasePointerCapture(ev.pointerId); } catch (err) { /* synthetic events */ }
+          pill.removeEventListener('pointermove', onMove);
+          pill.removeEventListener('pointerup', onUp);
+          pill.removeEventListener('pointercancel', onUp);
+          document.body.classList.remove('is-gapping');
+        };
+        pill.addEventListener('pointermove', onMove);
+        pill.addEventListener('pointerup', onUp);
+        pill.addEventListener('pointercancel', onUp);
+      });
+      pill.addEventListener('dblclick', () => {
+        applyGap(24);
+        showToast('Gap reset to 24 — auto layout approved ✅');
+      });
+    });
+  }
+
   /* layers panel toggle (mobile) */
   const togglePanel = (force) => document.body.classList.toggle('panel-open', force);
   $('#menuBtn') && $('#menuBtn').addEventListener('click', () => togglePanel());
@@ -483,10 +518,11 @@
     document.addEventListener('mouseleave', () => { ghost.classList.remove('is-on'); shown = false; });
     document.addEventListener('mouseover', (e) => {
       const handle = e.target.closest('.handle');
+      const gapPill = e.target.closest('.gap-pill');
       const interactive = e.target.closest('a, button, .layer-item, .token-row, .cap-chips span');
       const frame = document.body.classList.contains('frame-playground') && e.target.closest('.selection');
-      ghost.classList.toggle('is-link', !!(handle || interactive));
-      if (tag) tag.textContent = handle ? 'resize' : interactive ? 'click' : frame ? 'drag me' : 'you';
+      ghost.classList.toggle('is-link', !!(handle || gapPill || interactive));
+      if (tag) tag.textContent = handle ? 'resize' : gapPill ? 'gap' : interactive ? 'click' : frame ? 'drag me' : 'you';
     });
     window.addEventListener('mousedown', () => gsap.to(ghost, { scale: 0.82, duration: 0.12, transformOrigin: 'top left' }));
     window.addEventListener('mouseup', () => gsap.to(ghost, { scale: 1, duration: 0.25, ease: 'back.out(2)' }));
