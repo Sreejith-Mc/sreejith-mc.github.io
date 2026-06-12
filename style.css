@@ -54,8 +54,6 @@ body{
   font-family:var(--font);
   color:var(--ink);
   background:var(--canvas);
-  background-image:radial-gradient(circle, var(--dotc) 1px, transparent 1.1px);
-  background-size:24px 24px;
   overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
 }
@@ -228,7 +226,11 @@ h1,h2,h3{ line-height:1.1; }
 }
 
 /* ============ Canvas / sections ============ */
-.canvas{ padding-top:var(--tb-h); }
+.canvas{
+  padding-top:var(--tb-h);
+  background-image:radial-gradient(circle, var(--dotc) 1px, transparent 1.1px);
+  background-size:24px 24px;
+}
 @media (min-width:1200px){
   .canvas{ padding-left:var(--layers-w); }
 }

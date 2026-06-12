@@ -102,6 +102,17 @@
   if (window.SplitText) gsap.registerPlugin(SplitText);
   ScrollTrigger.config({ ignoreMobileResize: true });
 
+  /* buttery smooth scrolling — lerped scroll on desktop, native on touch */
+  if (window.ScrollSmoother && !reduced) {
+    gsap.registerPlugin(ScrollSmoother);
+    ScrollSmoother.create({
+      wrapper: '#smooth-wrapper',
+      content: '#smooth-content',
+      smooth: 1.1,
+      smoothTouch: false,
+    });
+  }
+
   /* ---------- smooth-scroll navigation ---------- */
   function scrollToTarget(target) {
     gsap.to(window, {
