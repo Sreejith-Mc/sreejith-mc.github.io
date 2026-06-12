@@ -38,6 +38,7 @@ GSAP loads from a CDN, so you need internet on first load.
 | Skills table | Local variables / design tokens panel |
 | Contact card | Share → "Invite collaborator" dialog |
 | Bottom-right chip + toolbar % | Zoom level = scroll progress (100% → 200%) |
+| Sun/moon button in toolbar | Figma's dark UI theme — chrome goes dark, your "designs" (mocks, stickies) stay lit; choice is remembered |
 
 ## Customize
 

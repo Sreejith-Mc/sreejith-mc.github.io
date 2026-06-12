@@ -58,6 +58,19 @@
     })
   );
 
+  /* theme switcher */
+  const themeBtn = $('#themeToggle');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', () => {
+      const dark = document.documentElement.classList.toggle('dark');
+      try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+      if (hasGSAP && !reduced) {
+        gsap.fromTo(themeBtn, { rotate: -45, scale: 0.7 }, { rotate: 0, scale: 1, duration: 0.45, ease: 'back.out(2.5)' });
+      }
+      showToast(dark ? 'Lights off 🌙' : 'Lights on ☀️');
+    });
+  }
+
   /* layers panel toggle (mobile) */
   const togglePanel = (force) => document.body.classList.toggle('panel-open', force);
   $('#menuBtn') && $('#menuBtn').addEventListener('click', () => togglePanel());
