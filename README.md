@@ -32,7 +32,7 @@ GSAP loads from a CDN, so you need internet on first load.
 | Floating named cursors | Multiplayer cursors |
 | 💬 pin in hero | Comments |
 | Section titles ("01 · about-me") | Frame name labels |
-| About cards | Components (purple dashed) |
+| About cards | Components (blue dashed) |
 | Stat separators | Auto-layout gap markers (pink "24") |
 | Process section | FigJam board with sticky notes, pinned horizontal scroll |
 | Skills table | Local variables / design tokens panel |
