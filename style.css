@@ -708,9 +708,10 @@ body.frame-playground .hm-hint-drag{ display:inline; }
 .process-head{
   width:min(1032px, calc(100% - 80px));
   margin:0 auto 16px;
+  flex:none;
 }
 .process-head .sec-head{ margin-bottom:0; }
-.process-track-wrap{ width:100%; }
+.process-track-wrap{ width:100%; flex:none; }
 .process-track{
   display:flex; align-items:center; gap:34px;
   width:max-content;
@@ -748,13 +749,25 @@ body.frame-playground .hm-hint-drag{ display:inline; }
 }
 .flow-arrow{ flex:none; opacity:.85; }
 .process-bar{
-  width:min(1032px, calc(100% - 80px)); margin:0 auto;
+  width:min(1032px, calc(100% - 80px)); margin:28px auto 0;
+  flex:none;
   height:3px; border-radius:99px; background:var(--border); overflow:hidden;
 }
 .process-bar i{
   display:block; height:100%; width:100%;
   background:linear-gradient(90deg, var(--purple), var(--cyan));
   transform:scaleX(0); transform-origin:left center;
+}
+
+/* compact board on short screens so cards + progress bar always fit */
+@media (max-height:760px) and (min-width:900px){
+  .process-pin{ padding:68px 0 22px; }
+  .process-head{ margin-bottom:6px; }
+  .process-track{ padding-top:22px; padding-bottom:38px; }
+  .process-bar{ margin-top:20px; }
+  .sticky{ width:min(286px, 78vw); padding:20px 20px 50px; }
+  .sticky h3{ font-size:29px; }
+  .sticky p{ font-size:12.5px; }
 }
 
 /* no-pin fallback (mobile / reduced motion) */
