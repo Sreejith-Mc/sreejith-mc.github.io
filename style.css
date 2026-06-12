@@ -749,7 +749,7 @@ body.frame-playground .hm-hint-drag{ display:inline; }
 }
 .flow-arrow{ flex:none; opacity:.85; }
 .process-bar{
-  width:min(1032px, calc(100% - 80px)); margin:28px auto 0;
+  width:min(1032px, calc(100% - 80px)); margin:44px auto 0;
   flex:none;
   height:3px; border-radius:99px; background:var(--border); overflow:hidden;
 }
@@ -764,7 +764,7 @@ body.frame-playground .hm-hint-drag{ display:inline; }
   .process-pin{ padding:68px 0 22px; }
   .process-head{ margin-bottom:6px; }
   .process-track{ padding-top:22px; padding-bottom:38px; }
-  .process-bar{ margin-top:20px; }
+  .process-bar{ margin-top:30px; }
   .sticky{ width:min(286px, 78vw); padding:20px 20px 50px; }
   .sticky h3{ font-size:29px; }
   .sticky p{ font-size:12.5px; }
