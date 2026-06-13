@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=7">
   <noscript><style>#preloader{display:none!important}</style></noscript>
   <script>
     (function () {
@@ -97,8 +97,8 @@
   <div class="panel-backdrop" id="panelBackdrop"></div>
   <aside class="layers" id="layersPanel" aria-label="Section navigation styled as Figma layers">
     <div class="layers-head">
-      <span class="lh-tab is-active">Layers</span>
-      <span class="lh-tab" title="Nothing in here, I keep my files tidy">Assets</span>
+      <button class="lh-tab is-active" type="button" data-tab="layers" aria-selected="true">Layers</button>
+      <button class="lh-tab" type="button" data-tab="assets" aria-selected="false">Assets</button>
     </div>
     <div class="layers-page">
       <svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -146,6 +146,36 @@
         <span>05 · contact</span>
       </button>
     </nav>
+    <div class="assets-panel" id="assetsPanel" hidden>
+      <div class="assets-search">
+        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <input id="assetSearch" type="text" placeholder="Search components…" aria-label="Search components">
+      </div>
+      <div class="assets-sec">Portfolio kit · drag onto the canvas</div>
+      <div class="assets-grid" id="assetsGrid">
+        <button class="asset-card" type="button" data-asset="sticky" title="Drag me onto the page">
+          <span class="ac-thumb"><i class="acp-sticky"></i></span>
+          <span class="ac-name"><svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true"><path d="M8 1l2.2 2.2L8 5.4 5.8 3.2 8 1zM3.2 5.8L5.4 8l-2.2 2.2L1 8l2.2-2.2zM12.8 5.8L15 8l-2.2 2.2L10.6 8l2.2-2.2zM8 10.6l2.2 2.2L8 15l-2.2-2.2L8 10.6z" fill="currentColor"/></svg>sticky-note</span>
+        </button>
+        <button class="asset-card" type="button" data-asset="cursor" title="Drag me onto the page">
+          <span class="ac-thumb"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M3 1.5l7.1 19 3-7.9 7.9-3z" fill="#1ABCFE" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></span>
+          <span class="ac-name"><svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true"><path d="M8 1l2.2 2.2L8 5.4 5.8 3.2 8 1zM3.2 5.8L5.4 8l-2.2 2.2L1 8l2.2-2.2zM12.8 5.8L15 8l-2.2 2.2L10.6 8l2.2-2.2zM8 10.6l2.2 2.2L8 15l-2.2-2.2L8 10.6z" fill="currentColor"/></svg>guest-cursor</span>
+        </button>
+        <button class="asset-card" type="button" data-asset="pin" title="Drag me onto the page">
+          <span class="ac-thumb acp-emoji">💬</span>
+          <span class="ac-name"><svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true"><path d="M8 1l2.2 2.2L8 5.4 5.8 3.2 8 1zM3.2 5.8L5.4 8l-2.2 2.2L1 8l2.2-2.2zM12.8 5.8L15 8l-2.2 2.2L10.6 8l2.2-2.2zM8 10.6l2.2 2.2L8 15l-2.2-2.2L8 10.6z" fill="currentColor"/></svg>comment-pin</span>
+        </button>
+        <button class="asset-card" type="button" data-asset="button" title="Drag me onto the page">
+          <span class="ac-thumb"><i class="acp-btn">Hire me</i></span>
+          <span class="ac-name"><svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true"><path d="M8 1l2.2 2.2L8 5.4 5.8 3.2 8 1zM3.2 5.8L5.4 8l-2.2 2.2L1 8l2.2-2.2zM12.8 5.8L15 8l-2.2 2.2L10.6 8l2.2-2.2zM8 10.6l2.2 2.2L8 15l-2.2-2.2L8 10.6z" fill="currentColor"/></svg>primary-button</span>
+        </button>
+        <button class="asset-card" type="button" data-asset="emote" title="Drag me onto the page">
+          <span class="ac-thumb acp-emoji">🔥</span>
+          <span class="ac-name"><svg viewBox="0 0 16 16" width="10" height="10" aria-hidden="true"><path d="M8 1l2.2 2.2L8 5.4 5.8 3.2 8 1zM3.2 5.8L5.4 8l-2.2 2.2L1 8l2.2-2.2zM12.8 5.8L15 8l-2.2 2.2L10.6 8l2.2-2.2zM8 10.6l2.2 2.2L8 15l-2.2-2.2L8 10.6z" fill="currentColor"/></svg>figjam-emote</span>
+        </button>
+      </div>
+      <div class="assets-note">Drag a component onto the canvas (or tap it). Instances are yours — move them, edit them, ✕ to detach.</div>
+    </div>
     <div class="layers-foot">
       <span class="dot-green" aria-hidden="true"></span> All changes saved
     </div>
@@ -601,6 +631,7 @@
       </div>
     </footer>
   </main>
+  <div id="dropLayer"></div>
   </div>
   </div>
 
@@ -621,6 +652,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollToPlugin.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/Draggable.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/SplitText.min.js"></script>
-  <script src="script.js?v=5"></script>
+  <script src="script.js?v=7"></script>
 </body>
 </html>

@@ -106,6 +106,44 @@
     });
   }
 
+  /* layers / assets tab switch */
+  const lhTabs = $$('.lh-tab');
+  const layersList = $('.layers-list');
+  const layersPage = $('.layers-page');
+  const assetsPanel = $('#assetsPanel');
+  if (lhTabs.length && assetsPanel) {
+    lhTabs.forEach((t) =>
+      t.addEventListener('click', () => {
+        const showAssets = t.dataset.tab === 'assets';
+        lhTabs.forEach((x) => {
+          const active = x === t;
+          x.classList.toggle('is-active', active);
+          x.setAttribute('aria-selected', active);
+        });
+        assetsPanel.hidden = !showAssets;
+        if (layersList) layersList.hidden = showAssets;
+        if (layersPage) layersPage.hidden = showAssets;
+        if (hasGSAP && !reduced) {
+          gsap.from(showAssets ? assetsPanel : layersList, {
+            opacity: 0, x: -10, duration: 0.25, ease: 'power2.out', clearProps: 'all',
+          });
+        }
+      })
+    );
+  }
+
+  /* assets search filter */
+  const assetSearch = $('#assetSearch');
+  if (assetSearch) {
+    assetSearch.addEventListener('input', () => {
+      const q = assetSearch.value.trim().toLowerCase();
+      $$('.asset-card').forEach((c) => {
+        const hit = !q || c.textContent.toLowerCase().includes(q) || c.dataset.asset.includes(q);
+        c.style.display = hit ? '' : 'none';
+      });
+    });
+  }
+
   /* layers panel toggle (mobile) */
   const togglePanel = (force) => document.body.classList.toggle('panel-open', force);
   $('#menuBtn') && $('#menuBtn').addEventListener('click', () => togglePanel());
@@ -519,10 +557,11 @@
     document.addEventListener('mouseover', (e) => {
       const handle = e.target.closest('.handle');
       const gapPill = e.target.closest('.gap-pill');
+      const asset = e.target.closest('.asset-card, .dropped-asset');
       const interactive = e.target.closest('a, button, .layer-item, .token-row, .cap-chips span');
       const frame = document.body.classList.contains('frame-playground') && e.target.closest('.selection');
-      ghost.classList.toggle('is-link', !!(handle || gapPill || interactive));
-      if (tag) tag.textContent = handle ? 'resize' : gapPill ? 'gap' : interactive ? 'click' : frame ? 'drag me' : 'you';
+      ghost.classList.toggle('is-link', !!(handle || gapPill || asset || interactive));
+      if (tag) tag.textContent = handle ? 'resize' : gapPill ? 'gap' : asset ? 'drag' : interactive ? 'click' : frame ? 'drag me' : 'you';
     });
     window.addEventListener('mousedown', () => gsap.to(ghost, { scale: 0.82, duration: 0.12, transformOrigin: 'top left' }));
     window.addEventListener('mouseup', () => gsap.to(ghost, { scale: 1, duration: 0.25, ease: 'back.out(2)' }));
@@ -639,10 +678,201 @@
     });
   }
 
+  /* ---------- Assets tab: draggable component library ---------- */
+  function initAssetsPanel() {
+    const grid = $('#assetsGrid');
+    const dropLayer = $('#dropLayer');
+    if (!grid || !dropLayer) return;
+    const content = $('#smooth-content') || document.body;
+    const MAX_INSTANCES = 30;
+
+    const STICKY_COLORS = ['#FFE066', '#FFB3C1', '#9ED2FF', '#A6E8B8', '#FFD9A0'];
+    const CURSOR_COLORS = ['#F24E1E', '#FF7262', '#1ABCFE', '#0ACF83', '#FFC700'];
+    const CURSOR_NAMES = ['guest_17', 'not_a_recruiter', 'design_twitter', 'ur_next_pm', 'figma_stan', 'pixel_police'];
+    const PIN_QUIPS = ['nice.', 'ship it 🚀', '+1', 'lgtm ✅', 'approved by me, the visitor'];
+    const EMOTES = ['🔥', '❤️', '👏', '✨'];
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+    function build(type) {
+      const el = document.createElement('div');
+      el.className = 'dropped-asset da-' + type;
+      if (type === 'sticky') {
+        el.style.setProperty('--st', pick(STICKY_COLORS));
+        el.style.setProperty('--r', (Math.random() * 8 - 4).toFixed(1) + 'deg');
+        el.innerHTML = '<span class="da-text" contenteditable="true" spellcheck="false">type something…</span>';
+      } else if (type === 'cursor') {
+        el.style.setProperty('--c', pick(CURSOR_COLORS));
+        el.innerHTML =
+          '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3 1.5l7.1 19 3-7.9 7.9-3z" fill="var(--c)" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>' +
+          '<span>' + pick(CURSOR_NAMES) + '</span>';
+      } else if (type === 'pin') {
+        el.innerHTML = '<button class="da-pin-btn" type="button" aria-label="Open comment">💬</button><span class="da-pop">' + pick(PIN_QUIPS) + '</span>';
+      } else if (type === 'button') {
+        el.innerHTML = '<button class="btn btn-primary da-hire" type="button">Hire me</button>';
+      } else {
+        el.innerHTML = '<button class="da-emote-btn" type="button" aria-label="React">' + pick(EMOTES) + '</button>';
+      }
+      const x = document.createElement('button');
+      x.className = 'da-x'; x.type = 'button'; x.textContent = '✕'; x.title = 'Delete instance';
+      el.appendChild(x);
+      gsap.set(el, { xPercent: -50, yPercent: -50 });
+      return el;
+    }
+
+    const placeAt = (el, clientX, clientY) => {
+      const cr = content.getBoundingClientRect();
+      el.style.left = (clientX - cr.left) + 'px';
+      el.style.top = (clientY - cr.top) + 'px';
+    };
+
+    function makeInstanceDraggable(el) {
+      el.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('.da-x')) return;
+        const startX = e.clientX, startY = e.clientY;
+        const r = el.getBoundingClientRect();
+        const offX = startX - (r.left + r.width / 2);
+        const offY = startY - (r.top + r.height / 2);
+        let dragging = false;
+        const onMove = (ev) => {
+          if (!dragging && Math.hypot(ev.clientX - startX, ev.clientY - startY) > 5) {
+            dragging = true;
+            try { el.setPointerCapture(ev.pointerId); } catch (err) { /* synthetic */ }
+          }
+          if (dragging) {
+            ev.preventDefault();
+            placeAt(el, ev.clientX - offX, ev.clientY - offY);
+          }
+        };
+        const onUp = (ev) => {
+          el.removeEventListener('pointermove', onMove);
+          el.removeEventListener('pointerup', onUp);
+          el.removeEventListener('pointercancel', onUp);
+          try { el.releasePointerCapture(ev.pointerId); } catch (err) { /* synthetic */ }
+          if (dragging) {
+            el.addEventListener('click', (c) => { c.stopPropagation(); c.preventDefault(); }, { capture: true, once: true });
+          }
+        };
+        el.addEventListener('pointermove', onMove);
+        el.addEventListener('pointerup', onUp);
+        el.addEventListener('pointercancel', onUp);
+      });
+    }
+
+    function activate(el, type) {
+      el.querySelector('.da-x').addEventListener('click', () => {
+        gsap.to(el, { scale: 0, opacity: 0, duration: 0.25, ease: 'back.in(2)', onComplete: () => el.remove() });
+      });
+      if (type === 'cursor') {
+        /* cursors wander on their own — you can't grab people */
+        if (!reduced) {
+          gsap.to(el, {
+            x: 'random(-110, 110)', y: 'random(-70, 70)',
+            duration: 'random(3, 6)', repeat: -1, repeatRefresh: true, ease: 'sine.inOut',
+          });
+        }
+        return;
+      }
+      if (type === 'sticky') {
+        const txt = el.querySelector('.da-text');
+        let virgin = true;
+        txt.addEventListener('focus', () => {
+          if (!virgin) return;
+          virgin = false;
+          try { window.getSelection().selectAllChildren(txt); } catch (err) { /* fine */ }
+        });
+      }
+      if (type === 'pin') {
+        el.querySelector('.da-pin-btn').addEventListener('click', () => el.classList.toggle('is-open'));
+      }
+      if (type === 'button') {
+        el.querySelector('.da-hire').addEventListener('click', () => {
+          const t = document.getElementById('contact');
+          if (t) scrollToTarget(t);
+          showToast('Smart move 😏');
+        });
+      }
+      if (type === 'emote') {
+        const btn = el.querySelector('.da-emote-btn');
+        btn.addEventListener('click', () => {
+          for (let i = 0; i < 6; i++) {
+            const b = document.createElement('span');
+            b.className = 'da-burst';
+            b.textContent = btn.textContent;
+            el.appendChild(b);
+            gsap.fromTo(b,
+              { x: 0, y: 0, opacity: 1, scale: 0.6 },
+              {
+                x: gsap.utils.random(-70, 70), y: gsap.utils.random(-150, -70),
+                opacity: 0, scale: gsap.utils.random(0.9, 1.7), rotation: gsap.utils.random(-40, 40),
+                duration: gsap.utils.random(0.8, 1.3), ease: 'power1.out',
+                onComplete: () => b.remove(),
+              });
+          }
+        });
+      }
+      makeInstanceDraggable(el);
+    }
+
+    /* drag a component out of the panel (or tap to place it) */
+    grid.addEventListener('pointerdown', (e) => {
+      const card = e.target.closest('.asset-card');
+      if (!card) return;
+      e.preventDefault();
+      if (dropLayer.children.length >= MAX_INSTANCES) {
+        showToast('Easy — the canvas has enough components 😅');
+        return;
+      }
+      const type = card.dataset.asset;
+      const ghostEl = build(type);
+      ghostEl.classList.add('is-ghosting');
+      document.body.appendChild(ghostEl);
+      ghostEl.style.left = e.clientX + 'px';
+      ghostEl.style.top = e.clientY + 'px';
+      try { card.setPointerCapture(e.pointerId); } catch (err) { /* synthetic */ }
+      const startX = e.clientX, startY = e.clientY;
+      let moved = false;
+      const onMove = (ev) => {
+        if (Math.hypot(ev.clientX - startX, ev.clientY - startY) > 6) moved = true;
+        ghostEl.style.left = ev.clientX + 'px';
+        ghostEl.style.top = ev.clientY + 'px';
+      };
+      const onUp = (ev) => {
+        card.removeEventListener('pointermove', onMove);
+        card.removeEventListener('pointerup', onUp);
+        card.removeEventListener('pointercancel', onUp);
+        try { card.releasePointerCapture(ev.pointerId); } catch (err) { /* synthetic */ }
+        const panel = $('#layersPanel');
+        const pr = panel.getBoundingClientRect();
+        const overPanel = ev.clientX >= pr.left && ev.clientX <= pr.right && ev.clientY >= pr.top && ev.clientY <= pr.bottom;
+        let dropX = ev.clientX, dropY = ev.clientY;
+        if (!moved) {
+          /* tap-to-place: land it on the visible canvas */
+          dropX = window.innerWidth * 0.55 + gsap.utils.random(-80, 80);
+          dropY = window.innerHeight * 0.42 + gsap.utils.random(-60, 60);
+        } else if (overPanel) {
+          /* dropped back on the panel — poof */
+          gsap.to(ghostEl, { scale: 0, opacity: 0, duration: 0.2, onComplete: () => ghostEl.remove() });
+          return;
+        }
+        ghostEl.classList.remove('is-ghosting');
+        dropLayer.appendChild(ghostEl);
+        placeAt(ghostEl, dropX, dropY);
+        activate(ghostEl, type);
+        togglePanel(false);
+        if (!reduced) gsap.from(ghostEl, { scale: 0.4, opacity: 0, duration: 0.45, ease: 'back.out(2.2)' });
+        showToast('Instance created — it\'s yours now ✨');
+      };
+      card.addEventListener('pointermove', onMove);
+      card.addEventListener('pointerup', onUp);
+      card.addEventListener('pointercancel', onUp);
+    });
+  }
+
   /* ---------- boot ---------- */
   initScroll();
   initGhostCursor();
   initFramePlayground();
+  initAssetsPanel();
 
   const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
   const windowLoaded = new Promise((resolve) => {

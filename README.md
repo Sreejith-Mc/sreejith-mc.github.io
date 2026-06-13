@@ -28,6 +28,7 @@ GSAP loads from a CDN, so you need internet on first load.
 |---|---|
 | Top bar with tools, filename, avatars, Share | Editor toolbar |
 | Left nav | Layers panel (click = scroll to frame) |
+| Assets tab | Working component library — drag instances (editable stickies, wandering cursors, comment pins, emotes, a "Hire me" button) onto the canvas |
 | Hero headline | Selected layer: blue selection box, 8 handles, dimensions chip |
 | Floating named cursors | Multiplayer cursors |
 | 💬 pin in hero | Comments |
