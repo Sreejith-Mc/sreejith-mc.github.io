@@ -1116,14 +1116,56 @@ body.cursor-on input{ cursor:text !important; }
 /* --- toolbar tools: drawing surface --- */
 #toolOverlay{
   position:fixed; inset:0; z-index:500;
-  pointer-events:none;
+  pointer-events:none; cursor:crosshair;
 }
 body.tool-drawing #toolOverlay{ pointer-events:auto; }
-body.tool-drawing.cursor-on #toolOverlay{ cursor:crosshair !important; }
-body.tool-drawing.cursor-on[data-tool="text"] #toolOverlay{ cursor:text !important; }
-body.tool-drawing #toolOverlay{ cursor:crosshair; }
 body.tool-drawing[data-tool="text"] #toolOverlay{ cursor:text; }
 body.tool-drawing .ghost{ display:none !important; }
+/* while a tool is active, bring back the real cursor on the chrome
+   (the custom ghost is hidden), so the toolbar stays clickable */
+body.tool-drawing.cursor-on, body.tool-drawing.cursor-on *{ cursor:auto !important; }
+body.tool-drawing.cursor-on a,
+body.tool-drawing.cursor-on button,
+body.tool-drawing.cursor-on .tb-btn,
+body.tool-drawing.cursor-on .lh-tab,
+body.tool-drawing.cursor-on .tp-swatch,
+body.tool-drawing.cursor-on .tp-custom{ cursor:pointer !important; }
+body.tool-drawing.cursor-on #toolOverlay{ cursor:crosshair !important; }
+body.tool-drawing.cursor-on[data-tool="text"] #toolOverlay{ cursor:text !important; }
+body.tool-drawing.cursor-on input,
+body.tool-drawing.cursor-on [contenteditable]{ cursor:text !important; }
+
+/* tool color palette (Figma-style fill/stroke picker) */
+#toolPalette{
+  position:fixed; top:60px; left:50%; transform:translateX(-50%);
+  z-index:650; display:none; align-items:center; gap:6px;
+  background:var(--panel); border:1px solid var(--border); border-radius:10px;
+  padding:7px 10px; box-shadow:0 10px 30px rgba(0,0,0,.18);
+}
+#toolPalette.show{ display:flex; }
+.tp-label{
+  font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--faint); margin-right:3px; min-width:34px;
+}
+.tp-swatch{
+  width:20px; height:20px; border-radius:5px; flex:none;
+  border:1px solid rgba(0,0,0,.14); transition:transform .12s ease;
+}
+.tp-swatch:hover{ transform:scale(1.15); }
+.tp-swatch.is-active{ box-shadow:0 0 0 2px var(--panel), 0 0 0 4px var(--blue); }
+.tp-custom{
+  width:24px; height:24px; flex:none; border-radius:6px; overflow:hidden;
+  border:1px solid var(--border); position:relative; display:grid; place-items:center;
+  background:conic-gradient(from 0deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+}
+.tp-custom input{ position:absolute; inset:-30%; width:160%; height:160%; border:none; padding:0; background:none; cursor:pointer; }
+
+/* comment-tool instances reuse the page's comment design */
+.draw-comment{ z-index:62; }
+.draw-comment .comment-bubble{ position:absolute; }
+.cb-edit{ outline:none; min-width:90px; font-size:13px; line-height:1.5; color:var(--ink); overflow-wrap:break-word; }
+.cb-edit:empty::before{ content:'Comment…'; color:var(--faint); }
+.cb-reply-ph{ font-size:12.5px; color:var(--faint); }
 
 /* drawn objects (reuse .dropped-asset base for position/z/delete) */
 body:not(.tool-drawing) .draw-rect,

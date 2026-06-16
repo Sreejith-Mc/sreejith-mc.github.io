@@ -878,15 +878,48 @@
 
     const SHAPE_COLORS = ['#0D99FF', '#0ACF83', '#FFC700', '#FF7262', '#A259FF', '#1ABCFE', '#1E1E1E'];
     const HINTS = {
-      frame: 'Frame tool — drag on the canvas to draw a frame · Esc for Move',
-      shape: 'Rectangle tool — drag to draw · Esc for Move',
-      pen: 'Pen tool — drag to scribble a path · Esc for Move',
-      text: 'Text tool — click anywhere, then just type · Esc for Move',
-      comment: 'Comment tool — click to drop a note · Esc for Move',
+      frame: 'Frame tool — drag to draw a frame. Stays active · Esc for Move',
+      shape: 'Rectangle — drag to draw, pick a color above. Stays active · Esc for Move',
+      pen: 'Pen — drag to scribble, pick a color above. Stays active · Esc for Move',
+      text: 'Text — click anywhere and type. Stays active · Esc for Move',
+      comment: 'Comment — click to drop a note. Stays active · Esc for Move',
     };
     let tool = 'move';
     let shapeIdx = 0, frameCount = 0;
+    let drawColor = SHAPE_COLORS[0];
     const hinted = new Set();
+
+    /* color palette (shown for Rectangle + Pen) */
+    const palette = document.createElement('div');
+    palette.id = 'toolPalette';
+    const label = document.createElement('span');
+    label.className = 'tp-label'; label.textContent = 'Fill';
+    palette.appendChild(label);
+    SHAPE_COLORS.forEach((c, i) => {
+      const s = document.createElement('button');
+      s.type = 'button';
+      s.className = 'tp-swatch' + (i === 0 ? ' is-active' : '');
+      s.style.background = c; s.dataset.color = c;
+      s.setAttribute('aria-label', 'Color ' + c);
+      palette.appendChild(s);
+    });
+    const custom = document.createElement('label');
+    custom.className = 'tp-custom'; custom.title = 'Custom color';
+    const customInput = document.createElement('input');
+    customInput.type = 'color'; customInput.value = SHAPE_COLORS[0];
+    custom.appendChild(customInput);
+    palette.appendChild(custom);
+    document.body.appendChild(palette);
+    const setActiveSwatch = (el) =>
+      palette.querySelectorAll('.tp-swatch').forEach((x) => x.classList.toggle('is-active', x === el));
+    palette.addEventListener('click', (e) => {
+      const sw = e.target.closest('.tp-swatch');
+      if (!sw) return;
+      drawColor = sw.dataset.color;
+      customInput.value = sw.dataset.color;
+      setActiveSwatch(sw);
+    });
+    customInput.addEventListener('input', () => { drawColor = customInput.value; setActiveSwatch(null); });
 
     function setTool(t) {
       tool = t;
@@ -895,9 +928,16 @@
       document.body.classList.toggle('tool-drawing', drawing);
       document.body.dataset.tool = t;
       overlay.style.pointerEvents = drawing ? 'auto' : 'none';
+      const showPalette = t === 'shape' || t === 'pen';
+      palette.classList.toggle('show', showPalette);
+      if (showPalette) label.textContent = t === 'pen' ? 'Stroke' : 'Fill';
       if (drawing && !hinted.has(t)) { hinted.add(t); showToast(HINTS[t] || ''); }
     }
     toolBtns.forEach((b) => b.addEventListener('click', () => setTool(b.dataset.tool)));
+
+    /* while editing a text/comment instance, let clicks reach it (not the overlay) */
+    dropLayer.addEventListener('focusin', () => { overlay.style.pointerEvents = 'none'; });
+    dropLayer.addEventListener('focusout', () => { if (tool !== 'move') overlay.style.pointerEvents = 'auto'; });
 
     /* keyboard shortcuts (ignored while typing) */
     const keyMap = { v: 'move', f: 'frame', r: 'shape', p: 'pen', t: 'text', c: 'comment' };
@@ -971,7 +1011,7 @@
     function startRect(e, start, kind) {
       const el = document.createElement('div');
       el.className = 'dropped-asset draw-' + (kind === 'frame' ? 'frame' : 'rect');
-      if (kind === 'shape') el.style.background = SHAPE_COLORS[shapeIdx++ % SHAPE_COLORS.length];
+      if (kind === 'shape') el.style.background = drawColor;
       if (kind === 'frame') {
         frameCount++;
         const lbl = document.createElement('span');
@@ -1000,7 +1040,6 @@
         addDeleteBtn(el);
         makeDraggable(el);
         popIn(el);
-        setTool('move');
       };
       overlay.addEventListener('pointermove', move);
       overlay.addEventListener('pointerup', up);
@@ -1015,6 +1054,7 @@
       const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('class', 'dp-svg');
       const hit = document.createElementNS(NS, 'path'); hit.setAttribute('class', 'dp-hit');
       const path = document.createElementNS(NS, 'path'); path.setAttribute('class', 'dp-path');
+      path.style.stroke = drawColor;
       svg.appendChild(hit); svg.appendChild(path); wrap.appendChild(svg);
       dropLayer.appendChild(wrap);
       const pts = [[start.x, start.y]];
@@ -1042,7 +1082,6 @@
         addDeleteBtn(wrap);
         makeDraggable(wrap, '.dp-hit');
         popIn(wrap, '0% 0%');
-        setTool('move');
       };
       overlay.addEventListener('pointermove', move);
       overlay.addEventListener('pointerup', up);
@@ -1075,34 +1114,36 @@
       requestAnimationFrame(enter);
     }
 
-    /* --- comment: click to drop an editable note pin --- */
+    /* --- comment: drop a pin + bubble that matches the page's comment design --- */
     function createComment(start) {
       const el = document.createElement('div');
-      el.className = 'dropped-asset da-pin draw-comment is-open';
+      el.className = 'dropped-asset draw-comment';
       el.style.left = start.x + 'px'; el.style.top = start.y + 'px';
-      el.innerHTML = '<button class="da-pin-btn" type="button" aria-label="Toggle comment">💬</button>' +
-        '<span class="da-pop"><span class="dc-input" contenteditable="true" spellcheck="false">Comment…</span></span>';
+      el.innerHTML =
+        '<button class="comment-pin" type="button" aria-label="Toggle comment">💬</button>' +
+        '<div class="comment-bubble open">' +
+          '<div class="cb-thread"><div class="cb-msg">' +
+            '<div class="cb-head"><span class="avatar a-self">A</span><b>You</b><span class="cb-time">· just now</span></div>' +
+            '<p class="cb-edit" contenteditable="true" spellcheck="false"></p>' +
+          '</div></div>' +
+          '<div class="cb-reply"><span class="cb-reply-ph">Reply…</span></div>' +
+        '</div>';
       dropLayer.appendChild(el);
       addDeleteBtn(el);
-      makeDraggable(el, '.da-pin-btn');
-      const inp = el.querySelector('.dc-input');
-      el.querySelector('.da-pin-btn').addEventListener('click', (ev) => {
+      makeDraggable(el, '.comment-pin');
+      const bubble = el.querySelector('.comment-bubble');
+      const edit = el.querySelector('.cb-edit');
+      el.querySelector('.comment-pin').addEventListener('click', (ev) => {
         if (tool !== 'move') return;
         ev.stopPropagation();
-        el.classList.toggle('is-open');
+        bubble.classList.toggle('open');
       });
-      inp.addEventListener('blur', () => {
-        if (!inp.textContent.trim() || inp.textContent.trim() === 'Comment…') {
-          gsap.to(el, { scale: 0, opacity: 0, duration: 0.2, onComplete: () => el.remove() });
-        }
+      edit.addEventListener('blur', () => {
+        if (!edit.textContent.trim()) gsap.to(el, { scale: 0, opacity: 0, duration: 0.2, onComplete: () => el.remove() });
       });
-      inp.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') { ev.preventDefault(); inp.blur(); } });
-      const focusInp = () => {
-        inp.focus();
-        try { const r = document.createRange(); r.selectNodeContents(inp); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } catch (err) { /* fine */ }
-      };
-      focusInp();
-      requestAnimationFrame(focusInp);
+      edit.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') { ev.preventDefault(); edit.blur(); } });
+      edit.focus();
+      requestAnimationFrame(() => edit.focus());
     }
 
     /* overlay routes the pointer to the active tool */
@@ -1110,8 +1151,8 @@
       if (tool === 'move') return;
       e.preventDefault();
       const start = toLocal(e.clientX, e.clientY);
-      if (tool === 'text') { createText(start); setTool('move'); }
-      else if (tool === 'comment') { createComment(start); setTool('move'); }
+      if (tool === 'text') createText(start);
+      else if (tool === 'comment') createComment(start);
       else if (tool === 'pen') startPen(e, start);
       else startRect(e, start, tool);
     });
