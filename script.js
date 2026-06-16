@@ -492,7 +492,7 @@
 
     /* pinned horizontal FigJam board */
     const mm = gsap.matchMedia();
-    mm.add('(min-width: 900px) and (prefers-reduced-motion: no-preference)', () => {
+    mm.add('(min-width: 900px) and (pointer: fine) and (prefers-reduced-motion: no-preference)', () => {
       const track = $('#processTrack');
       if (!track) return;
       const dist = () => Math.max(0, track.scrollWidth - window.innerWidth + 80);
@@ -515,7 +515,7 @@
         },
       });
     });
-    mm.add('(max-width: 899px), (prefers-reduced-motion: reduce)', () => {
+    mm.add('(max-width: 899px), (pointer: coarse), (prefers-reduced-motion: reduce)', () => {
       const sec = $('.sec-process');
       if (sec) sec.classList.add('no-pin');
       return () => sec && sec.classList.remove('no-pin');
