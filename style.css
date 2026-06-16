@@ -1113,6 +1113,50 @@ body.cursor-on input{ cursor:text !important; }
   font-size:18px; pointer-events:none;
 }
 
+/* --- toolbar tools: drawing surface --- */
+#toolOverlay{
+  position:fixed; inset:0; z-index:500;
+  pointer-events:none;
+}
+body.tool-drawing #toolOverlay{ pointer-events:auto; }
+body.tool-drawing.cursor-on #toolOverlay{ cursor:crosshair !important; }
+body.tool-drawing.cursor-on[data-tool="text"] #toolOverlay{ cursor:text !important; }
+body.tool-drawing #toolOverlay{ cursor:crosshair; }
+body.tool-drawing[data-tool="text"] #toolOverlay{ cursor:text; }
+body.tool-drawing .ghost{ display:none !important; }
+
+/* drawn objects (reuse .dropped-asset base for position/z/delete) */
+body:not(.tool-drawing) .draw-rect,
+body:not(.tool-drawing) .draw-frame,
+body:not(.tool-drawing) .draw-text:not(.editing),
+body:not(.tool-drawing) .draw-comment .da-pin-btn{ cursor:grab; }
+.draw-rect{ border-radius:2px; box-shadow:0 6px 16px rgba(0,0,0,.12); }
+.draw-frame{
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:2px; box-shadow:0 8px 22px rgba(0,0,0,.08);
+}
+.df-label{
+  position:absolute; top:-17px; left:1px;
+  font-size:11px; font-weight:600; color:var(--blue); white-space:nowrap;
+}
+.dt-text{
+  display:inline-block; min-width:12px;
+  font-size:28px; font-weight:700; letter-spacing:-.025em; line-height:1.1;
+  color:var(--ink); outline:none; white-space:pre-wrap; overflow-wrap:break-word;
+}
+.draw-text.editing .dt-text{
+  box-shadow:0 0 0 1.5px var(--blue); border-radius:3px;
+}
+.dp-svg{ position:absolute; left:0; top:0; overflow:visible; }
+.dp-path{ fill:none; stroke:var(--blue); stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+.dp-hit{ fill:none; stroke:rgba(0,0,0,0); stroke-width:16; stroke-linecap:round; stroke-linejoin:round; }
+.draw-comment .da-pop{ display:none; }
+.draw-comment.is-open .da-pop{ display:block; }
+.dc-input{
+  outline:none; min-width:54px; display:inline-block;
+  color:#fff; cursor:text;
+}
+
 /* ============ Theme switching ============ */
 #themeToggle .ic-sun{ display:none; }
 html.dark #themeToggle .ic-sun{ display:block; }

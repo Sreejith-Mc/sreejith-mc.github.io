@@ -868,11 +868,261 @@
     });
   }
 
+  /* ---------- Toolbar tools: a working mini-Figma ---------- */
+  function initTools() {
+    const toolBtns = $$('.tb-tools .tb-btn[data-tool]');
+    const overlay = $('#toolOverlay');
+    const dropLayer = $('#dropLayer');
+    const content = $('#smooth-content') || document.body;
+    if (!toolBtns.length || !overlay || !dropLayer) return;
+
+    const SHAPE_COLORS = ['#0D99FF', '#0ACF83', '#FFC700', '#FF7262', '#A259FF', '#1ABCFE', '#1E1E1E'];
+    const HINTS = {
+      frame: 'Frame tool — drag on the canvas to draw a frame · Esc for Move',
+      shape: 'Rectangle tool — drag to draw · Esc for Move',
+      pen: 'Pen tool — drag to scribble a path · Esc for Move',
+      text: 'Text tool — click anywhere, then just type · Esc for Move',
+      comment: 'Comment tool — click to drop a note · Esc for Move',
+    };
+    let tool = 'move';
+    let shapeIdx = 0, frameCount = 0;
+    const hinted = new Set();
+
+    function setTool(t) {
+      tool = t;
+      toolBtns.forEach((b) => b.classList.toggle('is-active', b.dataset.tool === t));
+      const drawing = t !== 'move';
+      document.body.classList.toggle('tool-drawing', drawing);
+      document.body.dataset.tool = t;
+      overlay.style.pointerEvents = drawing ? 'auto' : 'none';
+      if (drawing && !hinted.has(t)) { hinted.add(t); showToast(HINTS[t] || ''); }
+    }
+    toolBtns.forEach((b) => b.addEventListener('click', () => setTool(b.dataset.tool)));
+
+    /* keyboard shortcuts (ignored while typing) */
+    const keyMap = { v: 'move', f: 'frame', r: 'shape', p: 'pen', t: 'text', c: 'comment' };
+    document.addEventListener('keydown', (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = document.activeElement;
+      if (el && (el.isContentEditable || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
+        if (e.key === 'Escape') el.blur();
+        return;
+      }
+      if (e.key === 'Escape') return setTool('move');
+      const k = keyMap[e.key.toLowerCase()];
+      if (k) setTool(k);
+    });
+
+    const toLocal = (clientX, clientY) => {
+      const cr = content.getBoundingClientRect();
+      return { x: clientX - cr.left, y: clientY - cr.top };
+    };
+
+    function addDeleteBtn(el) {
+      const x = document.createElement('button');
+      x.className = 'da-x'; x.type = 'button'; x.textContent = '✕'; x.title = 'Delete';
+      x.addEventListener('pointerdown', (e) => e.stopPropagation());
+      x.addEventListener('click', (e) => {
+        e.stopPropagation();
+        gsap.to(el, { scale: 0, opacity: 0, duration: 0.2, ease: 'back.in(2)', onComplete: () => el.remove() });
+      });
+      el.appendChild(x);
+    }
+    function makeDraggable(el, handleSel) {
+      const handle = handleSel ? el.querySelector(handleSel) : el;
+      if (!handle) return;
+      handle.addEventListener('pointerdown', (e) => {
+        if (tool !== 'move') return;
+        if (e.target.closest('.da-x') || e.target.isContentEditable || el.classList.contains('editing')) return;
+        e.stopPropagation();
+        const startX = e.clientX, startY = e.clientY;
+        const left0 = parseFloat(el.style.left) || 0;
+        const top0 = parseFloat(el.style.top) || 0;
+        let dragging = false;
+        const move = (ev) => {
+          if (!dragging && Math.hypot(ev.clientX - startX, ev.clientY - startY) > 4) {
+            dragging = true;
+            try { handle.setPointerCapture(ev.pointerId); } catch (err) { /* synthetic */ }
+            el.classList.add('is-grabbing');
+          }
+          if (dragging) {
+            ev.preventDefault();
+            el.style.left = (left0 + ev.clientX - startX) + 'px';
+            el.style.top = (top0 + ev.clientY - startY) + 'px';
+          }
+        };
+        const up = (ev) => {
+          handle.removeEventListener('pointermove', move);
+          handle.removeEventListener('pointerup', up);
+          handle.removeEventListener('pointercancel', up);
+          el.classList.remove('is-grabbing');
+          try { handle.releasePointerCapture(ev.pointerId); } catch (err) { /* synthetic */ }
+        };
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', up);
+        handle.addEventListener('pointercancel', up);
+      });
+    }
+    const popIn = (el, origin) => {
+      if (!reduced) gsap.from(el, { scale: 0.5, opacity: 0, duration: 0.4, ease: 'back.out(2)', transformOrigin: origin || '50% 50%' });
+    };
+
+    /* --- rectangle / frame: drag to draw --- */
+    function startRect(e, start, kind) {
+      const el = document.createElement('div');
+      el.className = 'dropped-asset draw-' + (kind === 'frame' ? 'frame' : 'rect');
+      if (kind === 'shape') el.style.background = SHAPE_COLORS[shapeIdx++ % SHAPE_COLORS.length];
+      if (kind === 'frame') {
+        frameCount++;
+        const lbl = document.createElement('span');
+        lbl.className = 'df-label'; lbl.textContent = 'Frame ' + frameCount;
+        el.appendChild(lbl);
+      }
+      el.style.left = start.x + 'px'; el.style.top = start.y + 'px';
+      el.style.width = '0px'; el.style.height = '0px';
+      dropLayer.appendChild(el);
+      try { overlay.setPointerCapture(e.pointerId); } catch (err) { /* synthetic */ }
+      const move = (ev) => {
+        const p = toLocal(ev.clientX, ev.clientY);
+        el.style.left = Math.min(p.x, start.x) + 'px';
+        el.style.top = Math.min(p.y, start.y) + 'px';
+        el.style.width = Math.abs(p.x - start.x) + 'px';
+        el.style.height = Math.abs(p.y - start.y) + 'px';
+      };
+      const up = (ev) => {
+        overlay.removeEventListener('pointermove', move);
+        overlay.removeEventListener('pointerup', up);
+        try { overlay.releasePointerCapture(ev.pointerId); } catch (err) { /* synthetic */ }
+        if (parseFloat(el.style.width) < 6 && parseFloat(el.style.height) < 6) {
+          el.style.width = '120px';
+          el.style.height = (kind === 'frame' ? 90 : 120) + 'px';
+        }
+        addDeleteBtn(el);
+        makeDraggable(el);
+        popIn(el);
+        setTool('move');
+      };
+      overlay.addEventListener('pointermove', move);
+      overlay.addEventListener('pointerup', up);
+    }
+
+    /* --- pen: freehand path --- */
+    function startPen(e, start) {
+      const NS = 'http://www.w3.org/2000/svg';
+      const wrap = document.createElement('div');
+      wrap.className = 'dropped-asset draw-pen';
+      wrap.style.left = '0px'; wrap.style.top = '0px';
+      const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('class', 'dp-svg');
+      const hit = document.createElementNS(NS, 'path'); hit.setAttribute('class', 'dp-hit');
+      const path = document.createElementNS(NS, 'path'); path.setAttribute('class', 'dp-path');
+      svg.appendChild(hit); svg.appendChild(path); wrap.appendChild(svg);
+      dropLayer.appendChild(wrap);
+      const pts = [[start.x, start.y]];
+      const render = (ox, oy) => {
+        ox = ox || 0; oy = oy || 0;
+        let d = 'M' + (pts[0][0] - ox).toFixed(1) + ' ' + (pts[0][1] - oy).toFixed(1);
+        for (let i = 1; i < pts.length; i++) d += ' L' + (pts[i][0] - ox).toFixed(1) + ' ' + (pts[i][1] - oy).toFixed(1);
+        path.setAttribute('d', d); hit.setAttribute('d', d);
+      };
+      render();
+      try { overlay.setPointerCapture(e.pointerId); } catch (err) { /* synthetic */ }
+      const move = (ev) => { const p = toLocal(ev.clientX, ev.clientY); pts.push([p.x, p.y]); render(); };
+      const up = (ev) => {
+        overlay.removeEventListener('pointermove', move);
+        overlay.removeEventListener('pointerup', up);
+        try { overlay.releasePointerCapture(ev.pointerId); } catch (err) { /* synthetic */ }
+        if (pts.length < 3) { wrap.remove(); setTool('move'); return; }
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        pts.forEach(([x, y]) => { minX = Math.min(minX, x); minY = Math.min(minY, y); maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); });
+        const pad = 6;
+        wrap.style.left = (minX - pad) + 'px'; wrap.style.top = (minY - pad) + 'px';
+        wrap.style.width = (maxX - minX + pad * 2) + 'px'; wrap.style.height = (maxY - minY + pad * 2) + 'px';
+        svg.setAttribute('width', maxX - minX + pad * 2); svg.setAttribute('height', maxY - minY + pad * 2);
+        render(minX - pad, minY - pad);
+        addDeleteBtn(wrap);
+        makeDraggable(wrap, '.dp-hit');
+        popIn(wrap, '0% 0%');
+        setTool('move');
+      };
+      overlay.addEventListener('pointermove', move);
+      overlay.addEventListener('pointerup', up);
+    }
+
+    /* --- text: click to place, type --- */
+    function createText(start) {
+      const el = document.createElement('div');
+      el.className = 'dropped-asset draw-text editing';
+      el.style.left = start.x + 'px'; el.style.top = start.y + 'px';
+      const t = document.createElement('span');
+      t.className = 'dt-text'; t.spellcheck = false; t.contentEditable = 'true'; t.textContent = 'Text';
+      el.appendChild(t);
+      dropLayer.appendChild(el);
+      addDeleteBtn(el);
+      makeDraggable(el);
+      const exit = () => {
+        el.classList.remove('editing');
+        t.contentEditable = 'false';
+        if (!t.textContent.trim()) gsap.to(el, { scale: 0, opacity: 0, duration: 0.2, onComplete: () => el.remove() });
+      };
+      const enter = () => {
+        el.classList.add('editing'); t.contentEditable = 'true'; t.focus();
+        try { const r = document.createRange(); r.selectNodeContents(t); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } catch (err) { /* fine */ }
+      };
+      t.addEventListener('blur', exit);
+      t.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') { ev.preventDefault(); t.blur(); } });
+      el.addEventListener('dblclick', (ev) => { if (tool === 'move') { ev.stopPropagation(); enter(); } });
+      enter();
+      requestAnimationFrame(enter);
+    }
+
+    /* --- comment: click to drop an editable note pin --- */
+    function createComment(start) {
+      const el = document.createElement('div');
+      el.className = 'dropped-asset da-pin draw-comment is-open';
+      el.style.left = start.x + 'px'; el.style.top = start.y + 'px';
+      el.innerHTML = '<button class="da-pin-btn" type="button" aria-label="Toggle comment">💬</button>' +
+        '<span class="da-pop"><span class="dc-input" contenteditable="true" spellcheck="false">Comment…</span></span>';
+      dropLayer.appendChild(el);
+      addDeleteBtn(el);
+      makeDraggable(el, '.da-pin-btn');
+      const inp = el.querySelector('.dc-input');
+      el.querySelector('.da-pin-btn').addEventListener('click', (ev) => {
+        if (tool !== 'move') return;
+        ev.stopPropagation();
+        el.classList.toggle('is-open');
+      });
+      inp.addEventListener('blur', () => {
+        if (!inp.textContent.trim() || inp.textContent.trim() === 'Comment…') {
+          gsap.to(el, { scale: 0, opacity: 0, duration: 0.2, onComplete: () => el.remove() });
+        }
+      });
+      inp.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') { ev.preventDefault(); inp.blur(); } });
+      const focusInp = () => {
+        inp.focus();
+        try { const r = document.createRange(); r.selectNodeContents(inp); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } catch (err) { /* fine */ }
+      };
+      focusInp();
+      requestAnimationFrame(focusInp);
+    }
+
+    /* overlay routes the pointer to the active tool */
+    overlay.addEventListener('pointerdown', (e) => {
+      if (tool === 'move') return;
+      e.preventDefault();
+      const start = toLocal(e.clientX, e.clientY);
+      if (tool === 'text') { createText(start); setTool('move'); }
+      else if (tool === 'comment') { createComment(start); setTool('move'); }
+      else if (tool === 'pen') startPen(e, start);
+      else startRect(e, start, tool);
+    });
+  }
+
   /* ---------- boot ---------- */
   initScroll();
   initGhostCursor();
   initFramePlayground();
   initAssetsPanel();
+  initTools();
 
   const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
   const windowLoaded = new Promise((resolve) => {
