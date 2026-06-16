@@ -170,6 +170,7 @@ h1,h2,h3{ line-height:1.1; }
 .avatar.a2{ background:var(--green); }
 .avatar.a3{ background:var(--ink); }
 .avatar.a-self{ background:linear-gradient(135deg, var(--red), var(--blue)); }
+.avatar.a-sreejith{ background:linear-gradient(135deg, var(--green), var(--cyan)); }
 
 .btn-share{ padding:8px 14px; border-radius:6px; }
 .tb-zoom{

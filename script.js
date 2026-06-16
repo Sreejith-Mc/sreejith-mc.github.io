@@ -179,7 +179,17 @@
   const commentForm = $('#commentForm');
   const commentThread = $('#commentThread');
   if (commentForm && commentThread) {
-    let mayaReplied = false;
+    let mayaReplied = false, sreejithJoined = false;
+    const SREEJITH_LINES = [
+      'wait this portfolio actually goes hard 🔥',
+      'ok who is typing my name 👀',
+      'i better be getting royalties for this 😎',
+      'manifesting that offer letter rn ✨',
+      'tell the recruiter i said hi 👋',
+      'plot twist: i reviewed half of these designs 😏',
+      'hire them already, i vouch 🤝',
+    ];
+    const pickLine = () => SREEJITH_LINES[Math.floor(Math.random() * SREEJITH_LINES.length)];
     const addMsg = (avatarClass, initial, name, text) => {
       const msg = document.createElement('div');
       msg.className = 'cb-msg';
@@ -203,7 +213,17 @@
       addMsg('a-self', 'A', 'You', text);
       input.value = '';
       input.focus({ preventScroll: true });
-      if (!mayaReplied) {
+
+      if (/sreejith/i.test(text)) {
+        /* easter egg: name-drop Sreejith and he joins the chat */
+        if (!sreejithJoined) {
+          sreejithJoined = true;
+          setTimeout(() => addMsg('a-sreejith', 'S', 'Sreejith', 'Yoo i am included in this chat damn! 🎉'), 900);
+          setTimeout(() => addMsg('a-sreejith', 'S', 'Sreejith', pickLine()), 2300);
+        } else {
+          setTimeout(() => addMsg('a-sreejith', 'S', 'Sreejith', pickLine()), 900);
+        }
+      } else if (!mayaReplied) {
         mayaReplied = true;
         setTimeout(() => addMsg('a1', 'M', 'Maya', 'right?? hire them already 👀'), 1400);
       }
