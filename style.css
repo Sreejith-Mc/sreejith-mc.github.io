@@ -924,6 +924,7 @@ body.frame-playground .hm-hint-drag{ display:inline; }
 .marquee-inner{ display:flex; width:max-content; }
 .marquee-list{ display:flex; align-items:center; gap:34px; padding-right:34px; }
 .marquee-list span{ font-size:22px; font-weight:800; letter-spacing:-.02em; }
+.marquee-list span.ai{ color:var(--blue); }
 .marquee-list i{ font-style:normal; font-size:13px; color:var(--blue); }
 .marquee-alt{
   background:var(--band); border-top:none; border-bottom:1px dashed var(--border);
