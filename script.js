@@ -1,5 +1,5 @@
 /* ============================================================
-   Alex Carter — portfolio interactions (GSAP 3.13)
+   Sreejith Sajikumar — portfolio interactions (GSAP 3.13)
    ============================================================ */
 (function () {
   'use strict';
@@ -225,7 +225,7 @@
         }
       } else if (!mayaReplied) {
         mayaReplied = true;
-        setTimeout(() => addMsg('a1', 'M', 'Maya', 'right?? hire them already 👀'), 1400);
+        setTimeout(() => addMsg('a1', 'S', 'sijo', 'right?? hire them already 👀'), 1400);
       }
     });
   }
