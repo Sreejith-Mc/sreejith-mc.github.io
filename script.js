@@ -179,7 +179,53 @@
   const commentForm = $('#commentForm');
   const commentThread = $('#commentThread');
   if (commentForm && commentThread) {
-    let mayaReplied = false, sreejithJoined = false;
+    let sreejithJoined = false;
+    let lastBotText = '';
+    /* the crew replies based on what you type — [name, avatar class, line] */
+    const BOT_REPLIES = {
+      greeting: [
+        ['sijo', 'a1', 'hey hey 👋 welcome to the file'],
+        ['Rash', 'a-rash', 'oh hi! you found the comments 🎉'],
+        ['r0gue', 'a-rogue', 'sup.'],
+      ],
+      hire: [
+        ['sijo', 'a1', 'right?? hire them already 👀'],
+        ['Rash', 'a-rash', 'PM verdict: strong endorse 📋'],
+        ['supposedly_sam', 'a2', 'dev here — the handoffs are actually clean. hire.'],
+      ],
+      praise: [
+        ['sijo', 'a1', 'he is gonna be insufferable when he reads this 😌'],
+        ['Rash', 'a-rash', 'and it is fully responsive. we checked twice.'],
+        ['sijo', 'a1', 'wait till you drag the pink gaps in about-me 👀'],
+        ['supposedly_sam', 'a2', 'took us 47 commits but yeah, it slaps'],
+      ],
+      critique: [
+        ['sijo', 'a1', 'bold words for someone in comment range 😤'],
+        ['r0gue', 'a-rogue', 'counterpoint: no.'],
+        ['Rash', 'a-rash', 'adding “make it pop” to the backlog 🙃'],
+      ],
+      question: [
+        ['sijo', 'a1', 'good q — email him, he replies stupid fast ⚡'],
+        ['supposedly_sam', 'a2', 'the README is the docs 😅'],
+        ['Rash', 'a-rash', 'great question for the standup. which is this thread now.'],
+      ],
+      generic: [
+        ['sijo', 'a1', 'adding this to the FigJam board 📌'],
+        ['Rash', 'a-rash', 'noted. circulating to stakeholders (it is just us)'],
+        ['r0gue', 'a-rogue', '+1'],
+        ['supposedly_sam', 'a2', 'this thread is now load-bearing, do not delete'],
+        ['sijo', 'a1', 'screenshotting this for the retro 📸'],
+      ],
+    };
+    const classifyMsg = (t) => {
+      const s = t.toLowerCase();
+      if (/\b(hi|hello|hey|yo|hola|sup)\b/.test(s)) return 'greeting';
+      if (/(hire|job|work|recruit|opening|interview|freelance)/.test(s)) return 'hire';
+      if (/(nice|good|great|love|cool|awesome|fire|clean|sick|amazing|beautiful|hard|slaps|dope|insane|crazy)/.test(s)) return 'praise';
+      if (/(bad|ugly|meh|boring|hate|trash|mid)/.test(s)) return 'critique';
+      if (/\?\s*$|\b(how|why|what|when|can you|does|do you)\b/.test(s)) return 'question';
+      return 'generic';
+    };
     const SREEJITH_LINES = [
       'wait this portfolio actually goes hard 🔥',
       'ok who is typing my name 👀',
@@ -223,9 +269,18 @@
         } else {
           setTimeout(() => addMsg('a-sreejith', 'S', 'Sreejith', pickLine()), 900);
         }
-      } else if (!mayaReplied) {
-        mayaReplied = true;
-        setTimeout(() => addMsg('a1', 'S', 'sijo', 'right?? hire them already 👀'), 1400);
+      } else {
+        /* the crew chimes in based on what you typed */
+        const pool = BOT_REPLIES[classifyMsg(text)];
+        let reply = pool[Math.floor(Math.random() * pool.length)];
+        if (reply[2] === lastBotText && pool.length > 1) {
+          reply = pool[(pool.indexOf(reply) + 1) % pool.length];
+        }
+        lastBotText = reply[2];
+        setTimeout(
+          () => addMsg(reply[1], reply[0][0].toUpperCase(), reply[0], reply[2]),
+          900 + Math.random() * 800
+        );
       }
     });
   }
@@ -746,6 +801,9 @@
     const CURSOR_NAMES = ['guest_17', 'not_a_recruiter', 'design_twitter', 'ur_next_pm', 'figma_stan', 'pixel_police'];
     const PIN_QUIPS = ['nice.', 'ship it 🚀', '+1', 'lgtm ✅', 'approved by me, the visitor'];
     const EMOTES = ['🔥', '❤️', '👏', '✨'];
+    const WASHI_COLORS = ['#FFD66B', '#9ED2FF', '#FFB3C1', '#A6E8B8', '#FFD9A0'];
+    const STAMPS = ['⭐', '👍', '❤️', '🔥', '💯', '🚀'];
+    const CODE_SNIPS = ['border-radius: 8px;', 'display: flex;', 'gap: 24px;', 'color: #0D99FF;', 'transition: all .3s ease;', 'box-shadow: 0 8px 24px #0002;'];
     const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
     function build(type) {
@@ -764,6 +822,21 @@
         el.innerHTML = '<button class="da-pin-btn" type="button" aria-label="Open comment">💬</button><span class="da-pop">' + pick(PIN_QUIPS) + '</span>';
       } else if (type === 'button') {
         el.innerHTML = '<button class="btn btn-primary da-hire" type="button">Hire me</button>';
+      } else if (type === 'washi') {
+        el.style.setProperty('--wc', pick(WASHI_COLORS));
+        el.style.setProperty('--wr', (Math.random() * 40 - 20).toFixed(0) + 'deg');
+      } else if (type === 'stamp') {
+        el.innerHTML = '<button class="da-stamp-btn" type="button" aria-label="Stamp">' + pick(STAMPS) + '</button>';
+      } else if (type === 'connector') {
+        const cc = pick(CURSOR_COLORS);
+        el.style.setProperty('--cr', (Math.random() * 60 - 30).toFixed(0) + 'deg');
+        el.innerHTML =
+          '<svg viewBox="0 0 90 30" width="90" height="30" aria-hidden="true">' +
+          '<path d="M4 22 C 28 4, 58 28, 82 11" fill="none" stroke="' + cc + '" stroke-width="2.5" stroke-linecap="round"/>' +
+          '<path d="M73 6l10 5-7 8" fill="none" stroke="' + cc + '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+          '</svg>';
+      } else if (type === 'code') {
+        el.innerHTML = '<code class="da-code-text">' + pick(CODE_SNIPS) + '</code>';
       } else {
         el.innerHTML = '<button class="da-emote-btn" type="button" aria-label="React">' + pick(EMOTES) + '</button>';
       }
@@ -861,6 +934,26 @@
                 onComplete: () => b.remove(),
               });
           }
+        });
+      }
+      if (type === 'stamp') {
+        const b = el.querySelector('.da-stamp-btn');
+        b.addEventListener('click', () => {
+          gsap.fromTo(b, { scale: 1.35, rotate: -10 }, { scale: 1, rotate: 0, duration: 0.45, ease: 'back.out(3)' });
+          const ghost = document.createElement('span');
+          ghost.className = 'da-burst';
+          ghost.textContent = b.textContent;
+          el.appendChild(ghost);
+          gsap.fromTo(ghost, { x: 0, y: 0, opacity: 1, scale: 1 },
+            { y: -70, opacity: 0, scale: 1.6, duration: 0.9, ease: 'power1.out', onComplete: () => ghost.remove() });
+        });
+      }
+      if (type === 'code') {
+        el.addEventListener('click', (ev) => {
+          if (ev.target.closest('.da-x')) return;
+          const t = el.querySelector('.da-code-text');
+          if (t) { try { navigator.clipboard.writeText(t.textContent); } catch (err) { /* fine */ } }
+          showToast('Copied — straight from Dev Mode </>');
         });
       }
       makeInstanceDraggable(el);
