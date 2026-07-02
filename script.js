@@ -698,6 +698,26 @@
     });
   }
 
+  /* ---------- shared selection for canvas objects ---------- */
+  let selectedAsset = null;
+  let selectionHintShown = false;
+  function selectAsset(el) {
+    if (selectedAsset === el) return;
+    if (selectedAsset) selectedAsset.classList.remove('is-selected');
+    selectedAsset = el;
+    if (el) {
+      el.classList.add('is-selected');
+      if (!selectionHintShown) {
+        selectionHintShown = true;
+        showToast('Selected — Ctrl+] / Ctrl+[ reorder layers · Del deletes');
+      }
+    }
+  }
+  function poofRemove(el) {
+    if (selectedAsset === el) selectAsset(null);
+    gsap.to(el, { scale: 0, opacity: 0, duration: 0.2, ease: 'back.in(2)', onComplete: () => el.remove() });
+  }
+
   /* ---------- Assets tab: draggable component library ---------- */
   function initAssetsPanel() {
     const grid = $('#assetsGrid');
@@ -779,9 +799,7 @@
     }
 
     function activate(el, type) {
-      el.querySelector('.da-x').addEventListener('click', () => {
-        gsap.to(el, { scale: 0, opacity: 0, duration: 0.25, ease: 'back.in(2)', onComplete: () => el.remove() });
-      });
+      el.querySelector('.da-x').addEventListener('click', () => poofRemove(el));
       if (type === 'cursor') {
         /* cursors wander on their own — you can't grab people */
         if (!reduced) {
@@ -878,6 +896,7 @@
         dropLayer.appendChild(ghostEl);
         placeAt(ghostEl, dropX, dropY);
         activate(ghostEl, type);
+        selectAsset(ghostEl);
         togglePanel(false);
         if (!reduced) gsap.from(ghostEl, { scale: 0.4, opacity: 0, duration: 0.45, ease: 'back.out(2.2)' });
         showToast('Instance created — it\'s yours now ✨');
@@ -955,23 +974,59 @@
     }
     toolBtns.forEach((b) => b.addEventListener('click', () => setTool(b.dataset.tool)));
 
-    /* while editing a text/comment instance, let clicks reach it (not the overlay) */
-    dropLayer.addEventListener('focusin', () => { overlay.style.pointerEvents = 'none'; });
-    dropLayer.addEventListener('focusout', () => { if (tool !== 'move') overlay.style.pointerEvents = 'auto'; });
+    /* one draw at a time — a lost pointerup can never leave stale listeners */
+    let cancelActiveDraw = null;
 
     /* keyboard shortcuts (ignored while typing) */
     const keyMap = { v: 'move', f: 'frame', r: 'shape', p: 'pen', t: 'text', c: 'comment' };
     document.addEventListener('keydown', (e) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
       const el = document.activeElement;
-      if (el && (el.isContentEditable || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
+      const editing = el && (el.isContentEditable || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA');
+
+      /* layer order: Ctrl/Cmd + ] and [ — Shift sends to front/back */
+      const fwd = e.key === ']' || e.key === '}';
+      const back = e.key === '[' || e.key === '{';
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && (fwd || back) && !editing) {
+        const sel = selectedAsset;
+        if (sel && sel.parentElement && sel.parentElement.id === 'dropLayer') {
+          e.preventDefault();
+          const parent = sel.parentElement;
+          if (fwd) {
+            if (e.shiftKey) parent.appendChild(sel);
+            else if (sel.nextElementSibling) parent.insertBefore(sel, sel.nextElementSibling.nextElementSibling);
+          } else {
+            if (e.shiftKey) parent.insertBefore(sel, parent.firstElementChild);
+            else if (sel.previousElementSibling) parent.insertBefore(sel, sel.previousElementSibling);
+          }
+        }
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (editing) {
         if (e.key === 'Escape') el.blur();
         return;
       }
-      if (e.key === 'Escape') return setTool('move');
+      if (e.key === 'Escape') { selectAsset(null); return setTool('move'); }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedAsset && document.contains(selectedAsset)) {
+        e.preventDefault();
+        poofRemove(selectedAsset);
+        return;
+      }
       const k = keyMap[e.key.toLowerCase()];
       if (k) setTool(k);
     });
+
+    /* click to select (capture phase, so it runs before drag handlers) */
+    document.addEventListener('pointerdown', (e) => {
+      if (!e.target || !e.target.closest) return;
+      const asset = e.target.closest('.dropped-asset');
+      if (asset) {
+        if (tool === 'move' && !asset.classList.contains('is-ghosting')) selectAsset(asset);
+        return;
+      }
+      if (e.target.closest('.toolbar, #toolPalette, #layersPanel, .zoom-chip, .toast')) return;
+      selectAsset(null);
+    }, true);
 
     const toLocal = (clientX, clientY) => {
       const cr = content.getBoundingClientRect();
@@ -984,7 +1039,7 @@
       x.addEventListener('pointerdown', (e) => e.stopPropagation());
       x.addEventListener('click', (e) => {
         e.stopPropagation();
-        gsap.to(el, { scale: 0, opacity: 0, duration: 0.2, ease: 'back.in(2)', onComplete: () => el.remove() });
+        poofRemove(el);
       });
       el.appendChild(x);
     }
@@ -1044,14 +1099,23 @@
       try { overlay.setPointerCapture(e.pointerId); } catch (err) { /* synthetic */ }
       const move = (ev) => {
         const p = toLocal(ev.clientX, ev.clientY);
-        el.style.left = Math.min(p.x, start.x) + 'px';
-        el.style.top = Math.min(p.y, start.y) + 'px';
-        el.style.width = Math.abs(p.x - start.x) + 'px';
-        el.style.height = Math.abs(p.y - start.y) + 'px';
+        let dx = p.x - start.x, dy = p.y - start.y;
+        if (ev.shiftKey) {
+          /* Shift = perfect square, just like Figma */
+          const size = Math.max(Math.abs(dx), Math.abs(dy));
+          dx = (dx < 0 ? -1 : 1) * size;
+          dy = (dy < 0 ? -1 : 1) * size;
+        }
+        el.style.left = Math.min(start.x + dx, start.x) + 'px';
+        el.style.top = Math.min(start.y + dy, start.y) + 'px';
+        el.style.width = Math.abs(dx) + 'px';
+        el.style.height = Math.abs(dy) + 'px';
       };
       const up = (ev) => {
         overlay.removeEventListener('pointermove', move);
         overlay.removeEventListener('pointerup', up);
+        overlay.removeEventListener('pointercancel', up);
+        cancelActiveDraw = null;
         try { overlay.releasePointerCapture(ev.pointerId); } catch (err) { /* synthetic */ }
         if (parseFloat(el.style.width) < 6 && parseFloat(el.style.height) < 6) {
           el.style.width = '120px';
@@ -1060,9 +1124,12 @@
         addDeleteBtn(el);
         makeDraggable(el);
         popIn(el);
+        selectAsset(el);
       };
       overlay.addEventListener('pointermove', move);
       overlay.addEventListener('pointerup', up);
+      overlay.addEventListener('pointercancel', up);
+      cancelActiveDraw = up;
     }
 
     /* --- pen: freehand path --- */
@@ -1090,8 +1157,10 @@
       const up = (ev) => {
         overlay.removeEventListener('pointermove', move);
         overlay.removeEventListener('pointerup', up);
+        overlay.removeEventListener('pointercancel', up);
+        cancelActiveDraw = null;
         try { overlay.releasePointerCapture(ev.pointerId); } catch (err) { /* synthetic */ }
-        if (pts.length < 3) { wrap.remove(); setTool('move'); return; }
+        if (pts.length < 3) { wrap.remove(); return; }
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
         pts.forEach(([x, y]) => { minX = Math.min(minX, x); minY = Math.min(minY, y); maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); });
         const pad = 6;
@@ -1102,9 +1171,12 @@
         addDeleteBtn(wrap);
         makeDraggable(wrap, '.dp-hit');
         popIn(wrap, '0% 0%');
+        selectAsset(wrap);
       };
       overlay.addEventListener('pointermove', move);
       overlay.addEventListener('pointerup', up);
+      overlay.addEventListener('pointercancel', up);
+      cancelActiveDraw = up;
     }
 
     /* --- text: click to place, type --- */
@@ -1130,6 +1202,8 @@
       t.addEventListener('blur', exit);
       t.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') { ev.preventDefault(); t.blur(); } });
       el.addEventListener('dblclick', (ev) => { if (tool === 'move') { ev.stopPropagation(); enter(); } });
+      el._commit = exit;
+      selectAsset(el);
       enter();
       requestAnimationFrame(enter);
     }
@@ -1162,6 +1236,7 @@
         if (!edit.textContent.trim()) gsap.to(el, { scale: 0, opacity: 0, duration: 0.2, onComplete: () => el.remove() });
       });
       edit.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') { ev.preventDefault(); edit.blur(); } });
+      selectAsset(el);
       edit.focus();
       requestAnimationFrame(() => edit.focus());
     }
@@ -1170,6 +1245,38 @@
     overlay.addEventListener('pointerdown', (e) => {
       if (tool === 'move') return;
       e.preventDefault();
+
+      /* safety: a draw whose pointerup never arrived gets finalized now */
+      if (cancelActiveDraw) { try { cancelActiveDraw(e); } catch (err) { /* fine */ } cancelActiveDraw = null; }
+
+      /* if a text/comment is being edited, this click commits it first (Figma-style) */
+      const active = document.activeElement;
+      if (active && active.isContentEditable && dropLayer.contains(active)) {
+        const owner = active.closest('.dropped-asset');
+        const r = owner && owner.getBoundingClientRect();
+        const inside = r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+        if (inside) {
+          /* clicking the text you're editing just moves the caret */
+          try {
+            const range = document.caretRangeFromPoint && document.caretRangeFromPoint(e.clientX, e.clientY);
+            if (range) { const s = getSelection(); s.removeAllRanges(); s.addRange(range); }
+          } catch (err) { /* fine */ }
+          return;
+        }
+        active.blur(); /* commit; empty ones remove themselves */
+      }
+
+      /* safety: commit stray editors that lost focus without a blur event */
+      dropLayer.querySelectorAll('.draw-text.editing').forEach((t) => {
+        if (!t.contains(document.activeElement) && t._commit) t._commit();
+      });
+      dropLayer.querySelectorAll('.draw-comment .cb-edit').forEach((ed) => {
+        if (ed !== document.activeElement && !ed.textContent.trim()) {
+          const owner = ed.closest('.dropped-asset');
+          if (owner) { if (selectedAsset === owner) selectAsset(null); owner.remove(); }
+        }
+      });
+
       const start = toLocal(e.clientX, e.clientY);
       if (tool === 'text') createText(start);
       else if (tool === 'comment') createComment(start);

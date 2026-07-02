@@ -1072,6 +1072,8 @@ body.cursor-on input{ cursor:text !important; }
 .dropped-asset.is-ghosting{
   position:fixed; z-index:10001; pointer-events:none; opacity:.9;
 }
+.dropped-asset.is-selected{ outline:1.5px solid var(--blue); outline-offset:3px; }
+.dropped-asset.is-selected .da-x{ opacity:1; transform:scale(1); }
 .da-x{
   position:absolute; top:-11px; right:-11px; z-index:2;
   width:20px; height:20px; border-radius:50%;
@@ -1171,8 +1173,8 @@ body.tool-drawing.cursor-on [contenteditable]{ cursor:text !important; }
 }
 .tp-custom input{ position:absolute; inset:-30%; width:160%; height:160%; border:none; padding:0; background:none; cursor:pointer; }
 
-/* comment-tool instances reuse the page's comment design */
-.draw-comment{ z-index:62; }
+/* comment-tool instances reuse the page's comment design
+   (no z-index override — DOM order in #dropLayer controls layering) */
 .draw-comment .comment-bubble{ position:absolute; }
 .cb-edit{ outline:none; min-width:90px; font-size:13px; line-height:1.5; color:var(--ink); overflow-wrap:break-word; }
 .cb-edit:empty::before{ content:'Comment…'; color:var(--faint); }
@@ -1185,8 +1187,9 @@ body:not(.tool-drawing) .draw-text:not(.editing),
 body:not(.tool-drawing) .draw-comment .da-pin-btn{ cursor:grab; }
 .draw-rect{ border-radius:2px; box-shadow:0 6px 16px rgba(0,0,0,.12); }
 .draw-frame{
-  background:var(--panel); border:1px solid var(--border);
-  border-radius:2px; box-shadow:0 8px 22px rgba(0,0,0,.08);
+  background:var(--panel); border:1px solid var(--faint);
+  border-radius:2px;
+  box-shadow:0 2px 6px rgba(0,0,0,.10), 0 10px 26px rgba(0,0,0,.10);
 }
 .df-label{
   position:absolute; top:-17px; left:1px;
