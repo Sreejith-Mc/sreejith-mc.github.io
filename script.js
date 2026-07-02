@@ -1328,12 +1328,117 @@
     });
   }
 
+  /* ---------- component playground (skills as Figma variants) ---------- */
+  function initComponentPlayground() {
+    const card = $('#compCard');
+    const modesEl = $('#cpModes');
+    if (!card || !modesEl) return;
+
+    const MODES = {
+      'research': {
+        role: 'research mode',
+        line: 'Evidence before opinions — flows, personas and quick validation before pixels.',
+        chips: ['User flows', 'Personas', 'Journey maps', 'Competitor teardowns', 'Usability checks'],
+        tools: ['FigJam', 'Notion', 'Forms'],
+      },
+      'ui-design': {
+        role: 'ui design mode',
+        line: 'Clean interfaces built on tokens, auto layout and components that map 1:1 to code.',
+        chips: ['Design systems', 'Design tokens', 'Auto layout', 'Components', 'Accessibility'],
+        tools: ['Figma', 'Illustrator', 'Zeplin'],
+      },
+      'prototyping': {
+        role: 'prototyping mode',
+        line: 'High-fidelity motion and click-through demos that sell the idea before a line of code.',
+        chips: ['Micro-interactions', 'Motion design', 'Click-through demos', 'Video editing'],
+        tools: ['Figma', 'ProtoPie', 'After Effects', 'Lottie'],
+      },
+      'vibe-coding': {
+        role: 'vibe coding mode',
+        line: 'Design straight into the browser with AI pair-tools — this very site is the demo.',
+        chips: ['HTML / CSS / JS', 'GSAP', 'AI pair-coding', 'Rapid shipping'],
+        tools: ['Claude Code', 'Cursor', 'GitHub'],
+      },
+    };
+    const AI_CHIP = '⚡ AI workflows';
+    let currentMode = 'research';
+    let aiOn = false;
+    let swapping = false;
+
+    const roleEl = $('#ccRole'), lineEl = $('#ccLine');
+    const chipsEl = $('#ccChips'), toolsEl = $('#ccTools');
+    const aiBadge = $('#ccAi'), variantLabel = $('#csVariant');
+
+    function render() {
+      const m = MODES[currentMode];
+      roleEl.textContent = m.role;
+      lineEl.textContent = m.line;
+      variantLabel.textContent = currentMode;
+      chipsEl.innerHTML = '';
+      const chips = aiOn ? m.chips.concat(AI_CHIP) : m.chips;
+      chips.forEach((c) => {
+        const s = document.createElement('span');
+        s.className = 'cc-chip'; s.textContent = c;
+        chipsEl.appendChild(s);
+      });
+      toolsEl.innerHTML = '';
+      m.tools.forEach((t) => {
+        const s = document.createElement('span');
+        s.className = 'cc-tool'; s.textContent = t;
+        toolsEl.appendChild(s);
+      });
+      aiBadge.hidden = !aiOn;
+    }
+
+    function swapTo(mode) {
+      if (swapping || mode === currentMode) return;
+      currentMode = mode;
+      $$('#cpModes button').forEach((b) => b.classList.toggle('is-active', b.dataset.mode === mode));
+      if (reduced) { render(); return; }
+      swapping = true;
+      const parts = [lineEl, chipsEl, toolsEl, roleEl];
+      gsap.to(parts, {
+        opacity: 0, y: 6, duration: 0.16, ease: 'power2.in',
+        onComplete: () => {
+          render();
+          gsap.fromTo(parts, { opacity: 0, y: 8 }, {
+            opacity: 1, y: 0, duration: 0.3, stagger: 0.05, ease: 'power2.out',
+            onComplete: () => { swapping = false; },
+          });
+          gsap.fromTo($$('.cc-chip', chipsEl), { scale: 0.85, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.3, stagger: 0.04, ease: 'back.out(1.8)' });
+        },
+      });
+    }
+
+    modesEl.addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-mode]');
+      if (b) swapTo(b.dataset.mode);
+    });
+
+    const aiToggle = $('#cpAi');
+    aiToggle.addEventListener('click', () => {
+      aiOn = !aiOn;
+      aiToggle.setAttribute('aria-checked', aiOn);
+      render();
+      if (!reduced && aiOn) {
+        gsap.fromTo(aiBadge, { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: 'back.out(2.5)' });
+        const last = chipsEl.lastElementChild;
+        if (last) gsap.fromTo(last, { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: 'back.out(2)' });
+      }
+      showToast(aiOn ? 'ai-assisted: true — ships roughly 2× faster ⚡' : 'ai-assisted: false — artisanal, hand-crafted pixels 🐢');
+    });
+
+    render();
+  }
+
   /* ---------- boot ---------- */
   initScroll();
   initGhostCursor();
   initFramePlayground();
   initAssetsPanel();
   initTools();
+  initComponentPlayground();
 
   const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
   const windowLoaded = new Promise((resolve) => {

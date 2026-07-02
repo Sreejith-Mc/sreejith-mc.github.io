@@ -884,10 +884,97 @@ body.frame-playground .hm-hint-drag{ display:inline; }
 .no-pin .process-bar{ display:none; }
 .no-pin .process-head{ width:auto; margin:0 24px 8px; }
 
-/* ============ Skills / tokens ============ */
+/* ============ Skills / component playground ============ */
 .skills-grid{
-  display:grid; grid-template-columns:1.4fr 1fr; gap:56px;
+  display:grid; grid-template-columns:1.5fr 300px; gap:48px;
+  align-items:start;
 }
+.comp-set{
+  position:relative;
+  border:1.5px dashed rgba(13,153,255,.65);
+  border-radius:12px;
+  padding:26px;
+}
+.cs-label{
+  position:absolute; top:-22px; left:2px;
+  display:flex; align-items:center; gap:6px;
+  font-family:var(--mono); font-size:11.5px; font-weight:600;
+  color:var(--blue); white-space:nowrap;
+}
+.cs-label b{ font-weight:700; }
+.comp-card{
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:14px; padding:22px;
+  box-shadow:0 12px 32px rgba(0,0,0,.08);
+}
+.cc-head{ display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.cc-head .avatar{ width:40px; height:40px; font-size:15px; border:none; }
+.cc-id b{ display:block; font-size:16px; letter-spacing:-.01em; }
+.cc-id span{ font-family:var(--mono); font-size:11.5px; color:var(--blue); }
+.cc-ai{
+  margin-left:auto;
+  font-size:11px; font-weight:700; color:var(--blue);
+  background:rgba(13,153,255,.12); border:1px solid rgba(13,153,255,.3);
+  padding:4px 10px; border-radius:99px; white-space:nowrap;
+}
+.cc-line{ font-size:15px; line-height:1.55; color:var(--muted); margin-bottom:16px; min-height:44px; }
+.cc-chips{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; min-height:64px; align-content:flex-start; }
+.cc-chip{
+  font-size:12.5px; font-weight:600;
+  background:var(--chipbg); border:1px solid var(--border);
+  padding:7px 12px; border-radius:99px;
+}
+.cc-tools{ display:flex; flex-wrap:wrap; gap:6px; border-top:1px solid var(--border); padding-top:14px; }
+.cc-tool{
+  font-family:var(--mono); font-size:10.5px; font-weight:600;
+  color:var(--muted); background:var(--panel);
+  border:1px solid var(--border); border-radius:6px;
+  padding:4px 8px;
+}
+
+/* the properties panel — Figma right-sidebar flavored */
+.comp-props{
+  background:var(--panel); border:1px solid var(--border); border-radius:12px;
+  overflow:hidden;
+}
+.cp-head{
+  font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--faint);
+  padding:12px 14px; border-bottom:1px solid var(--border);
+}
+.cp-group{ padding:13px 14px; border-bottom:1px solid var(--border); }
+.cp-group.cp-row{ display:flex; align-items:center; justify-content:space-between; }
+.cp-name{
+  display:block; font-family:var(--mono); font-size:11.5px; font-weight:600;
+  color:var(--muted); margin-bottom:9px;
+}
+.cp-row .cp-name{ margin-bottom:0; }
+.cp-options{ display:flex; flex-wrap:wrap; gap:6px; }
+.cp-options button{
+  font-family:var(--mono); font-size:11px; font-weight:600;
+  color:var(--muted); background:var(--chipbg);
+  border:1px solid var(--border); border-radius:6px;
+  padding:6px 9px;
+  transition:color .15s ease, border-color .15s ease, background .15s ease;
+}
+.cp-options button:hover{ border-color:var(--blue); color:var(--blue); }
+.cp-options button.is-active{
+  background:rgba(13,153,255,.12); border-color:var(--blue); color:var(--blue);
+}
+.cp-toggle{
+  width:34px; height:19px; border-radius:99px; flex:none;
+  background:var(--chipbg); border:1px solid var(--border);
+  display:flex; align-items:center; padding:0 2px;
+  transition:background .2s ease, border-color .2s ease;
+}
+.cp-toggle i{
+  width:13px; height:13px; border-radius:50%;
+  background:var(--faint); display:block;
+  transition:transform .2s ease, background .2s ease;
+}
+.cp-toggle[aria-checked="true"]{ background:var(--blue); border-color:var(--blue); }
+.cp-toggle[aria-checked="true"] i{ transform:translateX(15px); background:#fff; }
+.cp-hint{ font-size:11.5px; line-height:1.55; color:var(--faint); padding:12px 14px; }
 .tokens-head{
   display:grid; grid-template-columns:30px 170px 100px 1fr; gap:14px;
   font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
