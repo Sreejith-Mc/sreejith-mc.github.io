@@ -856,7 +856,8 @@
       const card = e.target.closest('.asset-card');
       if (!card) return;
       e.preventDefault();
-      if (dropLayer.children.length >= MAX_INSTANCES) {
+      const backL = document.getElementById('dropLayerBack');
+      if (dropLayer.children.length + (backL ? backL.children.length : 0) >= MAX_INSTANCES) {
         showToast('Easy — the canvas has enough components 😅');
         return;
       }
@@ -912,6 +913,7 @@
     const toolBtns = $$('.tb-tools .tb-btn[data-tool]');
     const overlay = $('#toolOverlay');
     const dropLayer = $('#dropLayer');
+    const backLayer = $('#dropLayerBack');
     const content = $('#smooth-content') || document.body;
     if (!toolBtns.length || !overlay || !dropLayer) return;
 
@@ -988,15 +990,32 @@
       const back = e.key === '[' || e.key === '{';
       if ((e.ctrlKey || e.metaKey) && !e.altKey && (fwd || back) && !editing) {
         const sel = selectedAsset;
-        if (sel && sel.parentElement && sel.parentElement.id === 'dropLayer') {
+        const par = sel && sel.parentElement;
+        if (par && (par === dropLayer || par === backLayer)) {
           e.preventDefault();
-          const parent = sel.parentElement;
           if (fwd) {
-            if (e.shiftKey) parent.appendChild(sel);
-            else if (sel.nextElementSibling) parent.insertBefore(sel, sel.nextElementSibling.nextElementSibling);
+            if (e.shiftKey) dropLayer.appendChild(sel);
+            else if (par === backLayer) {
+              /* moving up inside the back layer; from its top, cross above the page */
+              if (sel.nextElementSibling) backLayer.insertBefore(sel, sel.nextElementSibling.nextElementSibling);
+              else dropLayer.insertBefore(sel, dropLayer.firstElementChild);
+            } else if (sel.nextElementSibling) {
+              dropLayer.insertBefore(sel, sel.nextElementSibling.nextElementSibling);
+            }
           } else {
-            if (e.shiftKey) parent.insertBefore(sel, parent.firstElementChild);
-            else if (sel.previousElementSibling) parent.insertBefore(sel, sel.previousElementSibling);
+            if (e.shiftKey && backLayer) backLayer.insertBefore(sel, backLayer.firstElementChild);
+            else if (par === dropLayer) {
+              /* moving down inside the front layer; from its bottom, cross behind the page */
+              if (sel.previousElementSibling) dropLayer.insertBefore(sel, sel.previousElementSibling);
+              else if (backLayer) backLayer.appendChild(sel);
+            } else if (sel.previousElementSibling) {
+              backLayer.insertBefore(sel, sel.previousElementSibling);
+            }
+          }
+          if (sel.parentElement !== par) {
+            showToast(sel.parentElement === backLayer
+              ? 'Sent behind the page 📉 — Ctrl+] brings it back'
+              : 'Back above the page ✨');
           }
         }
         return;
@@ -1025,6 +1044,15 @@
         return;
       }
       if (e.target.closest('.toolbar, #toolPalette, #layersPanel, .zoom-chip, .toast')) return;
+      /* back-layer items sit behind the page and can't be clicked directly —
+         hit-test them so a click on their spot still selects them */
+      if (tool === 'move' && backLayer) {
+        const hit = Array.from(backLayer.children).reverse().find((el) => {
+          const r = el.getBoundingClientRect();
+          return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+        });
+        if (hit) { selectAsset(hit); return; }
+      }
       selectAsset(null);
     }, true);
 

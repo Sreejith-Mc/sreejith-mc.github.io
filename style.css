@@ -289,11 +289,7 @@ h1,h2,h3{ line-height:1.1; }
 }
 
 /* ============ Canvas / sections ============ */
-.canvas{
-  padding-top:var(--tb-h);
-  background-image:radial-gradient(circle, var(--dotc) 1px, transparent 1.1px);
-  background-size:24px 24px;
-}
+.canvas{ padding-top:var(--tb-h); }
 @media (min-width:1200px){
   .canvas{ padding-left:var(--layers-w); }
 }
@@ -1060,11 +1056,22 @@ body.cursor-on input{ cursor:text !important; }
 .st-line{ overflow:hidden; }
 
 /* --- dropped component instances --- */
-#smooth-content{ position:relative; }
+#smooth-content{
+  position:relative;
+  /* dot grid lives here so back-layer objects can sit between it and the page */
+  background-image:radial-gradient(circle, var(--dotc) 1px, transparent 1.1px);
+  background-size:24px 24px;
+}
 #dropLayer{
   position:absolute; inset:0; z-index:60;
   pointer-events:none; overflow:visible;
 }
+/* layer BEHIND the page content — objects sent back with Ctrl+[ land here */
+#dropLayerBack{
+  position:absolute; inset:0; z-index:-1;
+  pointer-events:none; overflow:visible;
+}
+#dropLayerBack .dropped-asset{ pointer-events:auto; }
 .dropped-asset{
   position:absolute; z-index:60; pointer-events:auto;
   user-select:none; touch-action:none;

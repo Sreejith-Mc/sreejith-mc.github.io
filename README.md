@@ -27,7 +27,7 @@ GSAP loads from a CDN, so you need internet on first load.
 | Site element | Figma reference |
 |---|---|
 | Top bar with tools, filename, avatars, Share | Editor toolbar — the tools actually work (see below) |
-| Toolbar tools (V/F/R/P/T/C) | Working canvas tools: Move, Frame, Rectangle (Shift = square), Pen (freehand), Text, Comment. Pick one (or press its shortcut), then draw/type/click on the page. Click an object to select it; Ctrl+] / Ctrl+[ reorder layers (Shift = front/back), Del deletes, Esc returns to Move |
+| Toolbar tools (V/F/R/P/T/C) | Working canvas tools: Move, Frame, Rectangle (Shift = square), Pen (freehand), Text, Comment. Pick one (or press its shortcut), then draw/type/click on the page. Click an object to select it; Ctrl+] / Ctrl+[ reorder layers — past the bottom of the stack an object crosses BEHIND the page content itself (Shift = front/back), Del deletes, Esc returns to Move |
 | Left nav | Layers panel (click = scroll to frame) |
 | Assets tab | Working component library — drag instances (editable stickies, wandering cursors, comment pins, emotes, a "Hire me" button) onto the canvas |
 | Hero headline | Selected layer: blue selection box, 8 handles, dimensions chip |
