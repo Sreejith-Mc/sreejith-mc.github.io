@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=16">
+  <link rel="stylesheet" href="style.css?v=17">
   <noscript><style>#preloader{display:none!important}</style></noscript>
   <script>
     (function () {
@@ -121,9 +121,9 @@
         <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="5.5" cy="6" r="1.4" fill="currentColor"/><path d="M2 12l3.5-3.5L9 12l3-3 2 2" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
         <span>insylo</span>
       </button>
-      <button class="layer-item sub" data-target="#p-wavely">
+      <button class="layer-item sub" data-target="#p-quotely">
         <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="5.5" cy="6" r="1.4" fill="currentColor"/><path d="M2 12l3.5-3.5L9 12l3-3 2 2" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
-        <span>wavely</span>
+        <span>quotely</span>
       </button>
       <button class="layer-item sub" data-target="#p-driftway">
         <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="5.5" cy="6" r="1.4" fill="currentColor"/><path d="M2 12l3.5-3.5L9 12l3-3 2 2" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
@@ -315,54 +315,64 @@
           <!-- Insylo -->
           <article class="project" id="p-insylo">
             <div class="shot shot-insylo">
-              <span class="shot-label">insylo / design-system</span>
+              <span class="shot-label">insylo / pulse-survey</span>
               <span class="shot-dim">1440 × 1024</span>
               <i class="sh sh-tl"></i><i class="sh sh-tr"></i><i class="sh sh-bl"></i><i class="sh sh-br"></i>
               <div class="mock-insylo">
                 <div class="mi-top">
                   <span class="mi-logo"></span><i></i><i></i>
-                  <span class="mi-mode"><span class="mi-knob"></span></span>
+                  <span class="mi-badge"></span>
                 </div>
                 <div class="mi-body">
                   <div class="mi-side"><i class="on"></i><i></i><i></i><i></i></div>
-                  <div class="mi-main">
-                    <b class="mi-title"></b>
-                    <div class="mi-tags"><i></i><i></i><i class="gold"></i></div>
-                    <div class="mi-input"><span></span></div>
-                    <div class="mi-row"><span class="mi-btn"></span><span class="mi-btn ghost"></span></div>
+                  <div class="mi-survey">
+                    <b class="mi-q"></b>
+                    <div class="mi-opt"><i data-w="0.78"></i></div>
+                    <div class="mi-opt"><i data-w="0.46"></i></div>
+                    <div class="mi-opt"><i data-w="0.22"></i></div>
+                    <span class="mi-send"></span>
+                  </div>
+                  <div class="mi-chat">
+                    <div class="mi-msg"></div>
+                    <div class="mi-msg me"></div>
+                    <div class="mi-msg"></div>
+                    <div class="mi-typing"><i></i><i></i><i></i></div>
                   </div>
                 </div>
               </div>
-              <div class="float-chip chip-gold">☀ / ☾ 1,062 tokens</div>
+              <div class="float-chip chip-gold">📊 94% response rate</div>
             </div>
             <div class="project-info">
               <h3>Insylo <a class="case-link" href="https://www.behance.net/sreejithsajikumar" target="_blank" rel="noopener" aria-label="View on Behance">↗</a></h3>
-              <p>A token-driven design system — 1,000+ variables, light and dark — and the SaaS dashboard it powers. Zero hardcoded colors.</p>
-              <div class="tags"><span>SaaS</span><span>Design system</span><span>2026</span></div>
+              <p>Employee engagement app — send pulse surveys to your teams and keep the conversation going in a built-in community chat.</p>
+              <div class="tags"><span>HR Tech</span><span>App</span><span>2026</span></div>
             </div>
           </article>
 
-          <!-- Wavely -->
-          <article class="project" id="p-wavely">
-            <div class="shot shot-wavely">
-              <span class="shot-label">wavely / now-playing</span>
-              <span class="shot-dim">390 × 844</span>
+          <!-- Quotely -->
+          <article class="project" id="p-quotely">
+            <div class="shot shot-quotely">
+              <span class="shot-label">quotely / new-quote</span>
+              <span class="shot-dim">1440 × 900</span>
               <i class="sh sh-tl"></i><i class="sh sh-tr"></i><i class="sh sh-bl"></i><i class="sh sh-br"></i>
-              <div class="mock-player">
-                <div class="pl-art"></div>
-                <b class="pl-track"></b>
-                <i class="pl-artist"></i>
-                <div class="pl-wave">
-                  <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              <div class="mock-quote">
+                <div class="mq-bar"><i></i><i></i><i></i><span>quotely.app/quotes/new</span></div>
+                <div class="mq-doc">
+                  <div class="mq-head"><b>QUOTE</b><span class="mq-no">#0042</span></div>
+                  <div class="mq-row"><i class="w60"></i><em>₹4,500</em></div>
+                  <div class="mq-row"><i class="w45"></i><em>₹2,300</em></div>
+                  <div class="mq-row"><i class="w52"></i><em>₹1,200</em></div>
+                  <div class="mq-div"></div>
+                  <div class="mq-gst"><span class="mq-chip">GST 18% · auto</span><em>₹1,440</em></div>
+                  <div class="mq-total"><span>Total</span><em class="mq-sum">₹9,440</em></div>
                 </div>
-                <div class="pl-ctrl"><i></i><span class="pl-play"></span><i></i></div>
               </div>
-              <div class="float-chip">▲ 2.4× session length</div>
+              <div class="float-chip chip-emerald">⚡ auto-GST built in</div>
             </div>
             <div class="project-info">
-              <h3>Wavely <a class="case-link" href="https://www.behance.net/sreejithsajikumar" target="_blank" rel="noopener" aria-label="View on Behance">↗</a></h3>
-              <p>A podcast and music player built around moods instead of charts. Average session length up 2.4×.</p>
-              <div class="tags"><span>Consumer</span><span>Mobile</span><span>2025</span></div>
+              <h3>Quotely <a class="case-link" href="https://www.behance.net/sreejithsajikumar" target="_blank" rel="noopener" aria-label="View on Behance">↗</a></h3>
+              <p>Quote-creation platform with auto-GST, smart totals and client-ready quotes in seconds.</p>
+              <div class="tags"><span>SaaS</span><span>Web app</span><span>2025</span></div>
             </div>
           </article>
 
@@ -657,6 +667,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollToPlugin.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/Draggable.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/SplitText.min.js"></script>
-  <script src="script.js?v=16"></script>
+  <script src="script.js?v=17"></script>
 </body>
 </html>

@@ -380,32 +380,47 @@
       });
     }
 
-    /* Insylo mock — light/dark token flip while in view */
-    const insylo = $('.mock-insylo');
-    if (insylo && !reduced) {
-      const flip = gsap.to({ t: 0 }, {
-        t: 1, duration: 2.6, repeat: -1, paused: true,
-        onRepeat: () => insylo.classList.toggle('is-dark'),
-      });
+    /* Insylo mock — survey results fill + community chat while in view */
+    const insyloMock = $('.mock-insylo');
+    if (insyloMock && !reduced) {
+      const polls = $$('.mi-opt i', insyloMock);
+      const msgs = $$('.mi-msg', insyloMock);
+      const insyloTl = gsap.timeline({ repeat: -1, repeatDelay: 1.6, repeatRefresh: true, paused: true });
+      insyloTl
+        .fromTo(msgs, { y: 8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, stagger: 0.55, ease: 'power2.out' })
+        .fromTo(polls,
+          { scaleX: 0 },
+          { scaleX: (i, t) => parseFloat(t.dataset.w) || 0.5, duration: 0.7, stagger: 0.12, ease: 'power3.out' }, 0.2)
+        .to({}, { duration: 1.1 })
+        .to(polls, { scaleX: 'random(0.15, 0.9)', duration: 0.6, stagger: 0.1, ease: 'power2.inOut' }) /* live votes shifting */
+        .to({}, { duration: 1.1 });
       ScrollTrigger.create({
         trigger: '.shot-insylo', start: 'top 85%', end: 'bottom 15%',
-        onToggle: (self) => (self.isActive ? flip.play() : flip.pause()),
+        onToggle: (self) => (self.isActive ? insyloTl.play() : insyloTl.pause()),
       });
     }
 
-    /* Wavely mock — live equalizer while in view */
-    const eqBars = $$('.pl-wave i');
-    if (eqBars.length && !reduced) {
-      const eqTweens = eqBars.map((b, i) =>
-        gsap.to(b, {
-          scaleY: 'random(0.15, 1)', duration: 'random(0.3, 0.6)',
-          repeat: -1, yoyo: true, repeatRefresh: true,
-          ease: 'sine.inOut', paused: true, delay: i * 0.05,
-        })
-      );
+    /* Quotely mock — line items type in, GST auto-calculates, total counts up */
+    const quoteMock = $('.mock-quote');
+    if (quoteMock && !reduced) {
+      const qRows = $$('.mq-row', quoteMock);
+      const qChip = quoteMock.querySelector('.mq-chip');
+      const qGst = quoteMock.querySelector('.mq-gst em');
+      const qSum = quoteMock.querySelector('.mq-sum');
+      const fmt = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
+      const nums = { gst: 0, total: 0 };
+      const quoteTl = gsap.timeline({ repeat: -1, repeatDelay: 2, paused: true });
+      quoteTl
+        .fromTo(qRows, { x: -14, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, stagger: 0.3, ease: 'power2.out' })
+        .fromTo(qChip, { scale: 0 }, { scale: 1, duration: 0.4, ease: 'back.out(2.5)' }, '-=0.1')
+        .fromTo(nums, { gst: 0, total: 0 }, {
+          gst: 1440, total: 9440, duration: 0.9, ease: 'power2.out',
+          onUpdate: () => { qGst.textContent = fmt(nums.gst); qSum.textContent = fmt(nums.total); },
+        }, '<')
+        .to({}, { duration: 1.6 });
       ScrollTrigger.create({
-        trigger: '.shot-wavely', start: 'top 85%', end: 'bottom 15%',
-        onToggle: (self) => eqTweens.forEach((t) => (self.isActive ? t.play() : t.pause())),
+        trigger: '.shot-quotely', start: 'top 85%', end: 'bottom 15%',
+        onToggle: (self) => (self.isActive ? quoteTl.play() : quoteTl.pause()),
       });
     }
 
